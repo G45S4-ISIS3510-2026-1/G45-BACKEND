@@ -15,6 +15,7 @@ MOCK_USERS: list[dict] = [
         "tutoringSkills": [],   # se llenan tras insertar skills
         "interestedSkills": [],
         "sessionPrice": 25000,
+        "profileImageUrl": "https://cdn.example.com/avatars/andres.jpg",
         "availability": {
             "monday":    ["2026-03-16T09:00:00", "2026-03-16T11:00:00"],
             "tuesday":   [],
@@ -43,6 +44,7 @@ MOCK_USERS: list[dict] = [
         "favTutors": [],
         "tutoringSkills": [],
         "interestedSkills": [],
+        "profileImageUrl": "https://cdn.example.com/avatars/andres.jpg",
         "sessionPrice": 20000,
         "availability": {
             "monday":    ["2026-03-16T08:00:00"],
@@ -64,6 +66,7 @@ MOCK_USERS: list[dict] = [
         "favTutors": [],
         "tutoringSkills": [],
         "interestedSkills": [],
+        "profileImageUrl": "https://cdn.example.com/avatars/andres.jpg",
         "sessionPrice": 0,
         "availability": {
             "monday": [], "tuesday": [], "wednesday": [],

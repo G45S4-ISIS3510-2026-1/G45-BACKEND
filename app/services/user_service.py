@@ -367,3 +367,22 @@ class UserService:
                     pass  # No interrumpir si un usuario no tiene tokens activos
 
         return updated_tutor
+    
+    async def update_profile_image(self, user_id: str, image_url: str) -> User:
+        """Actualiza la URL de la imagen de perfil del usuario."""
+        user = await self.repo.get_by_id(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Usuario '{user_id}' no encontrado."
+            )
+        if not image_url.startswith(("http://", "https://")):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La URL de la imagen debe comenzar con http:// o https://"
+            )
+        
+        return await self.repo.update(
+            user_id,
+            user.model_copy(update={"profile_image_url": image_url})
+        )

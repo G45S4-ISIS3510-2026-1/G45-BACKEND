@@ -32,13 +32,11 @@ async def seed(db: AsyncClient):
 
     for user_data in MOCK_USERS:
         data = {**user_data, "major": user_data["major"].value}
-        # Asignar tutoringSkills según major del tutor
         if data["isTutoring"]:
             data["tutoringSkills"] = skill_map.get(data["major"], [])
-        # Serializar availability
         data["availability"] = {
             day: [ts if isinstance(ts, datetime) else datetime.fromisoformat(ts)
-                  for ts in slots]
+                for ts in slots]
             for day, slots in data["availability"].items()
         }
         ref = db.collection("users").document()
@@ -53,10 +51,16 @@ async def seed(db: AsyncClient):
 
     # ------------------------------------------------------------------ Sessions
     for session_data in MOCK_SESSIONS:
+        skill_doc = db.collection("skills").document(
+            SEEDED_IDS["skills"][session_data["_skill_index"]]
+        )
+        skill_full = (await skill_doc.get()).to_dict()
+        
         ref = db.collection("sessions").document()
         await ref.set({
             "studentId":   SEEDED_IDS["users"][session_data["_student_index"]],
             "tutorId":     SEEDED_IDS["users"][session_data["_tutor_index"]],
+            "skill":       skill_full,        # ← objeto completo del skill
             "scheduledAt": session_data["scheduledAt"],
             "status":      "Pendiente",
             "verifCode":   _generate_verif_code(),

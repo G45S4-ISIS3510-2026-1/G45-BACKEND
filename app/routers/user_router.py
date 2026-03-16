@@ -120,6 +120,16 @@ async def update_session_price(
     return await svc.update_session_price(user_id, new_price)
 
 
+@router.patch("/{user_id}/profile-image", response_model=User)
+async def update_profile_image(
+    user_id:   str,
+    image_url: str = Query(..., description="Nueva URL de la imagen de perfil"),
+    svc:       UserService = US,
+):
+    return await svc.update_profile_image(user_id, image_url)
+
+
+
 
 # -------- Payment Methods
 
@@ -163,3 +173,5 @@ async def send_notification(user_id: str, payload: NotificationPayload, svc: Use
 @router.delete("/{user_id}", status_code=204)
 async def delete(user_id: str, svc: UserService = US):
     await svc.delete(user_id)
+    
+

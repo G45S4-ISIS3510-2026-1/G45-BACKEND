@@ -76,6 +76,15 @@ class User(BaseModel):
         ge=0,
         description="Precio por sesión en pesos colombianos (solo aplica si isTutoring=True)"
     )
+    
+    # app/models/user.py — agrega el campo
+
+    profile_image_url: str | None = Field(
+        default=None,
+        alias="profileImageUrl",
+        description="URL de la imagen de perfil del usuario (puede actualizarse libremente)"
+    )
+
 
     model_config = {
         "populate_by_name": True,
@@ -106,7 +115,9 @@ class User(BaseModel):
                         "exp_month": 12,
                         "exp_year": 2028
                     }
-                ]
+                ],
+                "sessionPrice": 50000,
+                "profileImageUrl": "https://example.com/profiles/nicolas.jpg"
             }
         }
     }

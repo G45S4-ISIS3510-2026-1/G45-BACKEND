@@ -4,15 +4,15 @@ from datetime import datetime, timezone
 
 MOCK_SESSIONS: list[dict] = [
     {
-        "_student_index": 2,  # Andrés
-        "_tutor_index":   0,  # Nicolás
-        # Lunes próximo a las 09:00 — dentro de la disponibilidad de Nicolás
+        "_student_index": 2,   # Andrés
+        "_tutor_index":   0,   # Nicolás
+        "_skill_index":   0,   # Estructuras de Datos (primer skill)
         "scheduledAt": datetime(2026, 3, 23, 9, 0, 0, tzinfo=timezone.utc),
     },
     {
-        "_student_index": 2,  # Andrés
-        "_tutor_index":   1,  # Laura
-        # Martes próximo a las 10:00 — dentro de la disponibilidad de Laura
+        "_student_index": 2,   # Andrés
+        "_tutor_index":   1,   # Laura
+        "_skill_index":   2,   # Cálculo Diferencial (tercer skill)
         "scheduledAt": datetime(2026, 3, 24, 10, 0, 0, tzinfo=timezone.utc),
     },
 ]

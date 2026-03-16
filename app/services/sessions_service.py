@@ -140,6 +140,13 @@ class SessionService:
         # 6. Verificar que ni el estudiante ni el tutor tengan solapamiento de ±1h
         await self._assert_no_overlap(session.student_id, scheduled)
         await self._assert_no_overlap(session.tutor_id,   scheduled)
+        
+        skill = await self.skill_service.get_by_id(session.skill.id)
+        if not skill:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"El skill '{session.skill.id}' no existe."
+            )
 
         return await self.session_repo.create(session)
 
