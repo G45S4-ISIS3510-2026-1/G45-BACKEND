@@ -2,3 +2,4 @@ app/core/firebaseCredentials.json
 venv/
 .env
 __pycache__/
+*.pyc
