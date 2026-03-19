@@ -49,7 +49,7 @@ class User(BaseModel):
     email: EmailStr = Field(..., description="Correo electrónico")
     major: UniandesMajor = Field(..., description="Carrera de pregrado del usuario")
     is_tutoring: bool = Field(default=False, alias="isTutoring")
-    uniandes_id: int  = Field(..., alias="uniandesId")
+    uniandes_id: int | None = Field(..., alias="uniandesId")
     fcm_tokens:  list[str] = Field(default_factory=list, alias="fcmTokens")
     fav_tutors:  list[str] = Field(default_factory=list, alias="favTutors")
 
