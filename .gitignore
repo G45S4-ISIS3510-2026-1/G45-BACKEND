@@ -1,5 +1,7 @@
 app/core/firebaseCredentials.json
-# Python
+venv/
+.env
+__pycache__/# Python
 __pycache__/
 *.pyc
 *.pyo
