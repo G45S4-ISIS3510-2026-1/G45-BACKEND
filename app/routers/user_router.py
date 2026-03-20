@@ -173,5 +173,4 @@ async def send_notification(user_id: str, payload: NotificationPayload, svc: Use
 @router.delete("/{user_id}", status_code=204)
 async def delete(user_id: str, svc: UserService = US):
     await svc.delete(user_id)
-    
 

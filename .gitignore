@@ -1,5 +1,22 @@
 app/core/firebaseCredentials.json
 venv/
 .env
+__pycache__/# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.env/
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Firebase credentials
+firebaseCredentials.json
