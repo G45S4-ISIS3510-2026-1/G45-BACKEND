@@ -14,11 +14,13 @@ router = APIRouter(prefix="/users", tags=["Users"])
 # ------------------------------------------------------------------ DTOs de respuesta
 
 class TutorSummary(BaseModel):
-    """Respuesta reducida para listados de tutores."""
-    id:             str
-    name:           str
-    major:          UniandesMajor
-    average_rating: float | None
+    id: str
+    name: str
+    major: UniandesMajor
+    average_rating: float | None = None
+
+    profile_image_url: str | None = None
+    session_price: int | None = None
 
 
 # ------------------------------------------------------------------ Dependencias
@@ -73,6 +75,9 @@ async def search_tutors(
             name=tutor.name,
             major=tutor.major,
             average_rating=avg,
+            
+            profile_image_url=tutor.profile_image_url,
+            session_price=tutor.session_price,    
         ))
     return summaries
 
