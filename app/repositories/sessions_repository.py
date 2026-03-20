@@ -41,10 +41,12 @@ class SessionRepository:
         return self._doc_to_session(doc)
 
     async def get_by_student(self, student_id: str) -> list[Session]:
+        print(f"Buscando sesiones para studentId={student_id}...")
+        
         docs = await (
             self.col
             .where("studentId", "==", student_id)
-            .order_by("scheduledAt", direction="DESCENDING")
+            # .order_by("scheduledAt", direction="DESCENDING")
             .get()
         )
         return [self._doc_to_session(doc) for doc in docs]
@@ -53,7 +55,7 @@ class SessionRepository:
         docs = await (
             self.col
             .where("tutorId", "==", tutor_id)
-            .order_by("scheduledAt", direction="DESCENDING")
+            # .order_by("scheduledAt", direction="DESCENDING")
             .get()
         )
         return [self._doc_to_session(doc) for doc in docs]
