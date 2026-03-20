@@ -21,6 +21,7 @@ class TutorSummary(BaseModel):
 
     profile_image_url: str | None = None
     session_price: int | None = None
+    tutoring_skills: list[str] = []
 
 
 # ------------------------------------------------------------------ Dependencias
@@ -77,7 +78,8 @@ async def search_tutors(
             average_rating=avg,
             
             profile_image_url=tutor.profile_image_url,
-            session_price=tutor.session_price,    
+            session_price=tutor.session_price,
+            tutoring_skills=tutor.tutoring_skills,    
         ))
     return summaries
 
