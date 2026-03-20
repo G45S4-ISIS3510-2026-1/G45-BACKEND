@@ -76,6 +76,18 @@ async def search_tutors(
         ))
     return summaries
 
+#Alternative tutor search with full details (not just summary) - useful for tutor listing pages
+@router.get("/tutors/all", response_model=list[User])
+async def search_tutors(
+    name:      str | None       = Query(default=None, description="Substring del nombre del tutor"),
+    skill_ids: list[str] | None = Query(default=None, description="IDs de skills (al menos uno debe coincidir)"),
+    major:     UniandesMajor | None = Query(default=None, description="Carrera del tutor"),
+    svc:       UserService  = US,
+    rsvc:      ReviewService = RS,
+):
+    tutors = await svc.search_tutors(name=name, skill_ids=skill_ids, major=major)
+    return tutors
+
 
 # ------------------------------------------------------------------ UPDATE GENERAL
 

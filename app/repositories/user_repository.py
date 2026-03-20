@@ -15,12 +15,17 @@ class UserRepository:
 
     # ------------------------------------------------------------------ HELPERS
     def _doc_to_user(self, doc) -> User:
-        return User(id=doc.id, **doc.to_dict())
+        data = doc.to_dict()
+        data.pop("id", None)  # ← Remover "id" manualmente
+        return User(id=doc.id, **data)
 
     # ------------------------------------------------------------------ CREATE
     async def create(self, user: User) -> User:
-        doc_ref = self.col.document()
-        data = user.model_dump(by_alias=True, exclude={"id"})
+        if user.id is not None:
+            doc_ref = self.col.document(user.id)
+        else:
+            doc_ref = self.col.document()
+        data = user.model_dump(by_alias=True)
         await doc_ref.set(data)
         user.id = doc_ref.id
         return user

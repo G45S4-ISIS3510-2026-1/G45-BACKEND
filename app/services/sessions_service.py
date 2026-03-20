@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 from app.models.sessions import Session
 from app.models.enums import SessionStatus
 from app.repositories.sessions_repository import SessionRepository
+from app.repositories.skills_repository import SkillRepository
 from app.repositories.user_repository import UserRepository
 
 
@@ -21,9 +22,10 @@ WEEKDAY_TO_FIELD = {
 
 class SessionService:
 
-    def __init__(self, session_repo: SessionRepository, user_repo: UserRepository):
+    def __init__(self, session_repo: SessionRepository, user_repo: UserRepository, skill_repo: SkillRepository):
         self.session_repo = session_repo
         self.user_repo    = user_repo
+        self.skill_repo   = skill_repo
 
     # ------------------------------------------------------------------ HELPERS
 
@@ -141,16 +143,20 @@ class SessionService:
         await self._assert_no_overlap(session.student_id, scheduled)
         await self._assert_no_overlap(session.tutor_id,   scheduled)
         
-        skill = await self.skill_service.get_by_id(session.skill.id)
+        skill = await self.skill_repo.get_by_id(session.skill.id)
         if not skill:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"El skill '{session.skill.id}' no existe."
             )
+        session.skill = skill
 
         return await self.session_repo.create(session)
 
     # ------------------------------------------------------------------ READ
+    async def get_all(self) -> list[Session]:
+        return await self.session_repo.get_all()
+    
     async def get_by_id(self, session_id: str) -> Session:
         session = await self.session_repo.get_by_id(session_id)
         if not session:
@@ -247,7 +253,7 @@ class SessionService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Código de verificación incorrecto."
             )
-        return await self.session_repo.update_status(session_id, SessionStatus.EN_REVISION)
+        return await self.session_repo.update_status(session_id, SessionStatus.CONCLUIDA)
 
 
     # ------------------------------------------------------------------ DELETE

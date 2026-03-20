@@ -90,6 +90,7 @@ class User(BaseModel):
         "populate_by_name": True,
         "json_schema_extra": {
             "example": {
+                "id": "uid_user_1",
                 "name": "Nicolás Ballén",
                 "email": "n.ballen@uniandes.edu.co",
                 "major": "Ingeniería de Sistemas y Computación",

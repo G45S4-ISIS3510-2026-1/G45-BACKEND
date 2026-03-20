@@ -1,5 +1,7 @@
 # app/routers/session_router.py
 
+from typing import List
+
 from fastapi import APIRouter, Depends, Query
 from app.models.sessions import Session
 from app.models.enums import SessionStatus
@@ -29,6 +31,10 @@ async def create_session(session: Session, svc: SessionService = SS):
 @router.get("/{session_id}", response_model=Session)
 async def get_by_id(session_id: str, svc: SessionService = SS):
     return await svc.get_by_id(session_id)
+
+@router.get("/", response_model=list[Session])
+async def get_all(svc: SessionService = SS):
+    return await svc.get_all()
 
 @router.get("/by-student/{student_id}", response_model=list[Session])
 async def get_by_student(

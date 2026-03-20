@@ -18,7 +18,7 @@ class Session(BaseModel):
     tutor_id:     str           = Field(..., alias="tutorId",     description="ID del usuario tutor")
     scheduled_at: datetime      = Field(..., alias="scheduledAt", description="Fecha y hora en que ocurrirá la sesión")
     status:       SessionStatus = Field(default=SessionStatus.PENDIENTE, description="Estado actual de la sesión")
-    verif_code:   str           = Field(..., alias="verifCode",   description="Código alfanumérico de verificación de la sesión")
+    verif_code:   str  | None         = Field(default=None, alias="verifCode",   description="Código alfanumérico de verificación de la sesión")
     skill: Skill = Field(..., description="Skill principal de la tutoría (instancia completa)")
 
     model_config = {
