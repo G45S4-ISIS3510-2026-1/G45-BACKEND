@@ -59,14 +59,25 @@ class ReviewService:
                 detail=f"Review '{review_id}' no encontrada."
             )
         return review
+    #Cambio para Carga review
+    async def get_by_tutor(self, tutor_id: str):
+        reviews = await self.review_repo.get_by_tutor(tutor_id)
 
-    async def get_by_tutor(self, tutor_id: str) -> list[Review]:
-        if not await self.user_repo.get_by_id(tutor_id):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Tutor '{tutor_id}' no encontrado."
-            )
-        return await self.review_repo.get_by_tutor(tutor_id)
+        enriched_reviews = []
+
+        for review in reviews:
+            user = await self.user_repo.get_by_id(review.author_id)
+
+            enriched_reviews.append({
+                "authorId": review.author_id,
+                "authorName": user.name,
+                "authorImage": user.profile_image_url,
+                "details": review.details,
+                "rating": review.rating,
+                "createdAt": review.created_at,
+            })
+
+        return enriched_reviews
 
     async def get_by_author(self, author_id: str) -> list[Review]:
         if not await self.user_repo.get_by_id(author_id):

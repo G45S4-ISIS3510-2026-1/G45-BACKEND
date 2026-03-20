@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends
 from app.models.reviews import Review
 from app.services.reviews_service import ReviewService
+from app.models.review_response import ReviewResponse
 
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
 
@@ -29,7 +30,7 @@ async def create_review(review: Review, svc: ReviewService = RS):
 async def get_by_id(review_id: str, svc: ReviewService = RS):
     return await svc.get_by_id(review_id)
 
-@router.get("/by-tutor/{tutor_id}", response_model=list[Review])
+@router.get("/by-tutor/{tutor_id}", response_model=list[ReviewResponse])
 async def get_by_tutor(tutor_id: str, svc: ReviewService = RS):
     return await svc.get_by_tutor(tutor_id)
 
