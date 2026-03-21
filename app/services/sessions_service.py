@@ -6,6 +6,7 @@ from app.models.sessions import Session
 from app.models.enums import SessionStatus
 from app.repositories.sessions_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
+from app.services.skills_service import SkillService
 
 
 # Mapa de weekday() de Python (0=lunes) al campo de Availability
@@ -21,9 +22,10 @@ WEEKDAY_TO_FIELD = {
 
 class SessionService:
 
-    def __init__(self, session_repo: SessionRepository, user_repo: UserRepository):
+    def __init__(self, session_repo: SessionRepository, user_repo: UserRepository, skill_service: SkillService):
         self.session_repo = session_repo
         self.user_repo    = user_repo
+        self.skill_service = skill_service
 
     # ------------------------------------------------------------------ HELPERS
 
@@ -141,12 +143,15 @@ class SessionService:
         await self._assert_no_overlap(session.student_id, scheduled)
         await self._assert_no_overlap(session.tutor_id,   scheduled)
         
+        print(f"debug: Validating skill existence for ID: {session.skill.id}")
         skill = await self.skill_service.get_by_id(session.skill.id)
         if not skill:
+            print(f"debug: Skill {session.skill.id} NOT FOUND")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"El skill '{session.skill.id}' no existe."
             )
+        print(f"debug: Skill {session.skill.id} found")
 
         return await self.session_repo.create(session)
 
