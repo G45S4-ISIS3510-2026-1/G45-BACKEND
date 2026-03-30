@@ -3,10 +3,12 @@
 from app.models.user import User, Availability, PaymentMethod
 from app.models.enums import UniandesMajor
 
+mockImage="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxGhXTEp-G9Z1SBNez2KK6gAeeIbMfRgz-FQ&s"
+
 MOCK_USERS: list[dict] = [
     {
         "name": "Nicolás Ballén",
-        "email": "n.ballen@uniandes.edu.co",
+        "email": "nbalenciaga23@uniandes.edu.co",
         "major": UniandesMajor.INGENIERIA_SISTEMAS,
         "isTutoring": True,
         "uniandesId": 202012345,
@@ -15,14 +17,14 @@ MOCK_USERS: list[dict] = [
         "tutoringSkills": [],   # se llenan tras insertar skills
         "interestedSkills": [],
         "sessionPrice": 25000,
-        "profileImageUrl": "https://cdn.example.com/avatars/andres.jpg",
+        "profileImageUrl": mockImage,
         "availability": {
             "monday":    ["2026-03-16T09:00:00", "2026-03-16T11:00:00"],
             "tuesday":   [],
             "wednesday": ["2026-03-18T14:00:00"],
             "thursday":  [],
-            "friday":    ["2026-03-20T10:00:00"],
-            "saturday":  [],
+            "friday":    ["2026-03-20T10:00:00Z", "2026-03-20T11:00:00Z", "2026-03-20T12:00:00Z", "2026-03-20T13:00:00Z", "2026-03-20T14:00:00Z", "2026-03-20T15:00:00Z", "2026-03-20T16:00:00Z", "2026-03-20T17:00:00Z"],
+            "saturday":  ["2026-03-20T10:00:00", "2026-03-20T11:00:00", "2026-03-20T12:00:00", "2026-03-20T13:00:00", "2026-03-20T14:00:00", "2026-03-20T15:00:00", "2026-03-20T16:00:00", "2026-03-20T17:00:00"],
         },
         "paymentMethods": [
             {
@@ -44,14 +46,14 @@ MOCK_USERS: list[dict] = [
         "favTutors": [],
         "tutoringSkills": [],
         "interestedSkills": [],
-        "profileImageUrl": "https://cdn.example.com/avatars/andres.jpg",
+        "profileImageUrl": mockImage,
         "sessionPrice": 20000,
         "availability": {
             "monday":    ["2026-03-16T08:00:00"],
             "tuesday":   ["2026-03-17T10:00:00"],
             "wednesday": [],
             "thursday":  ["2026-03-19T15:00:00"],
-            "friday":    [],
+            "friday":    ["2026-03-20T10:00:00", "2026-03-20T11:00:00", "2026-03-20T12:00:00", "2026-03-20T13:00:00", "2026-03-20T14:00:00", "2026-03-20T15:00:00", "2026-03-20T16:00:00", "2026-03-20T17:00:00"],
             "saturday":  ["2026-03-21T09:00:00"],
         },
         "paymentMethods": [],
@@ -66,7 +68,7 @@ MOCK_USERS: list[dict] = [
         "favTutors": [],
         "tutoringSkills": [],
         "interestedSkills": [],
-        "profileImageUrl": "https://cdn.example.com/avatars/andres.jpg",
+        "profileImageUrl": mockImage,
         "sessionPrice": 0,
         "availability": {
             "monday": [], "tuesday": [], "wednesday": [],

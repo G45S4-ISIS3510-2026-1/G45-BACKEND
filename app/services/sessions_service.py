@@ -103,6 +103,7 @@ class SessionService:
         if scheduled.tzinfo is None:
             scheduled = scheduled.replace(tzinfo=timezone.utc)
         if scheduled <= now:
+            print(f"Intento de crear sesión con fecha pasada: {scheduled.isoformat()} (ahora: {now.isoformat()})")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="La fecha de la sesión debe ser en el futuro."
@@ -111,6 +112,7 @@ class SessionService:
         # 2. Validar existencia del estudiante
         student = await self.user_repo.get_by_id(session.student_id)
         if not student:
+            print(f"Intento de crear sesión con student_id no existente: {session.student_id}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Estudiante '{session.student_id}' no encontrado."
@@ -119,11 +121,14 @@ class SessionService:
         # 3. Validar existencia del tutor y que isTutoring sea True
         tutor = await self.user_repo.get_by_id(session.tutor_id)
         if not tutor:
+            print(f"Intento de crear sesión con tutor_id no existente: {session.tutor_id}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Tutor '{session.tutor_id}' no encontrado."
             )
         if not tutor.is_tutoring:
+            print(f"Intento de crear sesión con tutor_id no activo: {session.tutor_id}")
+
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"El usuario '{session.tutor_id}' no está activo como tutor."
@@ -131,6 +136,7 @@ class SessionService:
 
         # 4. Estudiante y tutor no pueden ser el mismo usuario
         if session.student_id == session.tutor_id:
+            print(f"Intento de crear sesión con mismo student_id y tutor_id: {session.student_id}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Un usuario no puede agendarse una tutoría consigo mismo."

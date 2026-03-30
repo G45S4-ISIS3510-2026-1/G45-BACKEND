@@ -1,6 +1,6 @@
 # app/mockData/seeder.py
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from google.cloud.firestore_v1 import AsyncClient
 from app.mockData.users    import MOCK_USERS
 from app.mockData.skills   import MOCK_SKILLS
@@ -16,7 +16,7 @@ SEEDED_IDS: dict[str, list[str]] = {
 
 async def seed(db: AsyncClient):
     """Pobla Firestore con datos de prueba al iniciar el servidor."""
-
+    bogota_offset = timezone(timedelta(hours=-5))
     # ------------------------------------------------------------------ Skills
     for skill_data in MOCK_SKILLS:
         ref = db.collection("skills").document()
@@ -35,7 +35,7 @@ async def seed(db: AsyncClient):
         if data["isTutoring"]:
             data["tutoringSkills"] = skill_map.get(data["major"], [])
         data["availability"] = {
-            day: [ts if isinstance(ts, datetime) else datetime.fromisoformat(ts)
+            day: [ts if isinstance(ts, datetime) else datetime.fromisoformat(ts).replace(tzinfo=bogota_offset)
                 for ts in slots]
             for day, slots in data["availability"].items()
         }
@@ -80,7 +80,7 @@ async def seed(db: AsyncClient):
             "rating":    review_data["rating"],
             "label":     review_data["label"],
             "details":   review_data["details"],
-            "createdAt": datetime.now(timezone.utc),
+            "createdAt": datetime.now(bogota_offset),
         })
         SEEDED_IDS["reviews"].append(ref.id)
 
@@ -97,7 +97,7 @@ async def seed(db: AsyncClient):
             "status":          "Pendiente",
             "topic":           pqr_data["topic"],
             "description":     pqr_data["description"],
-            "createdAt":       datetime.now(timezone.utc),
+            "createdAt":       datetime.now(bogota_offset),
             "relatedIncident": related,
         })
         SEEDED_IDS["pqrs"].append(ref.id)
