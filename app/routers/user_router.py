@@ -6,21 +6,9 @@ from app.models.notification import NotificationPayload
 from app.models.enums import UniandesMajor
 from app.services.user_service import UserService
 from app.services.reviews_service import ReviewService
-from pydantic import BaseModel
+from app.dtos.tutor_summary import TutorSummary
 
 router = APIRouter(prefix="/users", tags=["Users"])
-
-
-# ------------------------------------------------------------------ DTOs de respuesta
-
-class TutorSummary(BaseModel):
-    id: str
-    name: str
-    major: UniandesMajor
-    average_rating: float | None = None
-
-    profile_image_url: str | None = None
-    session_price: int | None = None
 
 
 # ------------------------------------------------------------------ Dependencias
@@ -28,13 +16,11 @@ class TutorSummary(BaseModel):
 # Ejemplo de uso: get_user_service() -> UserService
 
 from app.dependencies import (
-    get_user_service,
-    get_review_service
+    get_user_service
 )
 
 from fastapi import Depends
 US = Depends(get_user_service)
-RS = Depends(get_review_service)
 
 
 # ------------------------------------------------------------------ CREATE
@@ -46,36 +32,34 @@ async def register(user: User, svc: UserService = US):
 
 # ------------------------------------------------------------------ READ
 
-@router.get("/{user_id}", response_model=User)
+@router.get("/profile/{user_id}", response_model=User)
 async def get_by_id(user_id: str, svc: UserService = US):
-    return await svc.get_by_id(user_id)
+    return await svc.get_user_by_id(user_id)
 
-@router.get("/by-email/{email}", response_model=User)
-async def get_by_email(email: str, svc: UserService = US):
-    return await svc.get_by_email(email)
+@router.get("/tutor/{user_id}", response_model=User)
+async def get_tutor_by_id(user_id: str, svc: UserService = US):
+    return await svc.get_tutor_by_id(user_id)
 
-@router.get("/", response_model=list[User])
-async def get_all(svc: UserService = US):
-    return await svc.get_all()
 
 @router.get("/tutors/search", response_model=list[TutorSummary])
 async def search_tutors(
     name:      str | None       = Query(default=None, description="Substring del nombre del tutor"),
     skill_ids: list[str] | None = Query(default=None, description="IDs de skills (al menos uno debe coincidir)"),
     major:     UniandesMajor | None = Query(default=None, description="Carrera del tutor"),
-    svc:       UserService  = US,
-    rsvc:      ReviewService = RS,
+    min_rating: float | None = Query(default=None, ge=0, le=5, description="Calificación mínima promedio del tutor"),
+    min_price: int | None = Query(default=None, ge=0, description="Precio mínimo por sesión"),
+    max_price: int | None = Query(default=None, ge=0, description="Precio máximo por sesión"),
+    limit: int = Query(default=20, ge=1, le=100, description="Número máximo de resultados a retornar"),
+    svc:       UserService  = US
 ):
-    tutors = await svc.search_tutors(name=name, skill_ids=skill_ids, major=major)
+    tutors = await svc.search_tutors(name=name, skill_ids=skill_ids, major=major, min_rating=min_rating, min_price=min_price, max_price=max_price, limit=limit)
     summaries = []
     for tutor in tutors:
-        avg = await rsvc.review_repo.get_average_rating(tutor.id)
         summaries.append(TutorSummary(
             id=tutor.id,
             name=tutor.name,
             major=tutor.major,
-            average_rating=avg,
-            
+            rating=tutor.tutorRating,
             profile_image_url=tutor.profile_image_url,
             session_price=tutor.session_price,    
         ))

@@ -37,7 +37,7 @@ def get_pqr_repo()     -> PQRRepository:
 # ------------------------------------------------------------------ Servicios
 
 def get_user_service() -> UserService:
-    return UserService(get_user_repo())
+    return UserService(get_user_repo(), get_session_repo())
 
 def get_skill_service() -> SkillService:
     return SkillService(get_skill_repo())
@@ -46,7 +46,7 @@ def get_review_service() -> ReviewService:
     return ReviewService(get_review_repo(), get_user_repo())
 
 def get_session_service() -> SessionService:
-    return SessionService(get_session_repo(), get_user_repo(), get_skill_repo())
+    return SessionService(get_session_repo(), get_user_repo(), get_skill_repo(), get_user_service())
 
 def get_pqr_service() -> PQRService:
     return PQRService(get_pqr_repo(), get_user_repo(), get_session_repo())

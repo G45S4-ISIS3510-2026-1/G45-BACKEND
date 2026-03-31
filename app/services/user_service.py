@@ -1,8 +1,13 @@
 # app/services/user_service.py
 
+from datetime import datetime
+
 from fastapi import HTTPException, status
+from app.core.currentWeekManager import getColombiaWeekDate
+from app.models.sessions import Session
 from app.models.user import User, Availability, PaymentMethod
 from app.models.enums import UniandesMajor
+from app.repositories.sessions_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
 
 from firebase_admin import messaging
@@ -12,9 +17,31 @@ from app.models.notification import NotificationPayload
 
 class UserService:
 
-    def __init__(self, repo: UserRepository):
+    def __init__(self, repo: UserRepository, sessionRepo: SessionRepository):
         self.repo = repo
+        self.sessionRepo = sessionRepo
 
+    #------------------------------------------------------------------- HELPERS
+    
+    def _validate_free_slots(slot:datetime, date: datetime, sessions: list[Session]) -> bool:
+        slotHour = slot.hour
+        day=date.date()
+        for session in sessions:
+            if session.scheduledAt.date() == day and session.scheduledAt.hour == slotHour:
+                return False
+        return True
+        
+    def getFreeSlots(self, availability: Availability, sessions: list[Session]) -> Availability:
+        free_slots = Availability()
+        for weekDay, slots in availability.model_dump(by_alias=True).items():
+            day=getColombiaWeekDate(weekDay)
+            free_slots.model_dump(by_alias=True)[day] = [
+                slot for slot in slots
+                if self._validate_free_slots(slot, day, sessions)
+            ]
+        return free_slots
+        
+    
     # ------------------------------------------------------------------ CREATE
     async def register(self, user: User) -> User:
         if await self.repo.get_by_email(user.email):
@@ -22,16 +49,11 @@ class UserService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Ya existe un usuario registrado con el correo '{user.email}'."
             )
-        # SE COMENTA PQ AUN NO SE PUEDE EXTRAER EL UNIANDES ID DE LA SESION
-        # if await self.repo.get_by_uniandes_id(user.uniandes_id):
-        #     raise HTTPException(
-        #         status_code=status.HTTP_409_CONFLICT,
-        #         detail=f"Ya existe un usuario registrado con el ID Uniandes '{user.uniandes_id}'."
-        #     )
+    
         return await self.repo.create(user)
 
     # ------------------------------------------------------------------ READ
-    async def get_by_id(self, user_id: str) -> User:
+    async def get_user_by_id(self, user_id: str) -> User:
         user = await self.repo.get_by_id(user_id)
         if not user:
             raise HTTPException(
@@ -39,18 +61,19 @@ class UserService:
                 detail=f"Usuario '{user_id}' no encontrado."
             )
         return user
-
-    async def get_by_email(self, email: str) -> User:
-        user = await self.repo.get_by_email(email)
-        if not user:
+    
+    async def get_tutor_by_id(self, tutor_id: str) -> User:
+        tutor = await self.repo.get_by_id(tutor_id)
+        if not tutor or not tutor.is_tutoring:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Usuario con correo '{email}' no encontrado."
+                detail=f"Tutor '{tutor_id}' no encontrado."
             )
-        return user
+        tutor_sessions = await self.sessionRepo.get_by_tutor(tutor_id)
+        tutor_sessions.extend(await self.sessionRepo.get_by_student(tutor_id))
+        tutor.availability = self.getFreeSlots(tutor.availability, tutor_sessions)
+        return tutor
 
-    async def get_all(self) -> list[User]:
-        return await self.repo.get_all()
 
     async def get_all_tutors(self) -> list[User]:
         return await self.repo.get_all_tutors()
@@ -60,6 +83,10 @@ class UserService:
         name: str | None = None,
         skill_ids: list[str] | None = None,
         major: UniandesMajor | None = None,
+        min_price: int | None = None,
+        max_price: int | None = None,
+        min_rating: float | None = None,
+        limit: int | None = None,
     ) -> list[User]:
         """
         Búsqueda filtrada de tutores. Los filtros son acumulativos (AND):
@@ -78,6 +105,19 @@ class UserService:
 
         if major:
             tutors = [t for t in tutors if t.major == major]
+
+        if min_price is not None:
+            tutors = [t for t in tutors if t.session_price >= min_price]
+
+        if max_price is not None:
+            tutors = [t for t in tutors if t.session_price <= max_price]
+
+        if min_rating is not None:
+            tutors = [t for t in tutors if t.rating >= min_rating]
+
+        if limit is not None:
+            if limit < len(tutors):
+                tutors = tutors[:limit]
 
         return tutors
 
@@ -113,12 +153,6 @@ class UserService:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Usuario '{user_id}' no encontrado."
-            )
-        if user.is_tutoring == is_tutoring:
-            state = "tutor" if is_tutoring else "estudiante"
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"El usuario ya se encuentra en modo {state}."
             )
         return await self.repo.set_tutoring(user_id, is_tutoring)
 
@@ -387,3 +421,7 @@ class UserService:
             user_id,
             user.model_copy(update={"profile_image_url": image_url})
         )
+
+    #------------------------------------------------------------------ Tutores recomendados
+    # async def get_recommended_tutors(self, user_id: str, limit: int = 5) -> list[User]:
+    #     """Retorna una lista de tutores recomendados para el usuario, ordenados por relevancia."""

@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 from google.cloud.firestore_v1 import AsyncClient
+from app.core.currentWeekManager import getColombiaTimezone, refactorTimezone
 from app.models.reviews import Review
 
 COLLECTION = "reviews"
@@ -15,13 +16,16 @@ class ReviewRepository:
 
     # ------------------------------------------------------------------ HELPERS
     def _doc_to_review(self, doc) -> Review:
-        return Review(id=doc.id, **doc.to_dict())
+        review= Review(id=doc.id, **doc.to_dict())
+        #presentar created_at en timezone de Colombia para evitar confusiones (Firestore siempre guarda en UTC)
+        review.created_at = refactorTimezone(review.created_at)
+        return review
 
     # ------------------------------------------------------------------ CREATE
     async def create(self, review: Review) -> Review:
         doc_ref = self.col.document()
         data = review.model_dump(by_alias=True, exclude={"id"})
-        data["createdAt"] = datetime.now(timezone.utc)
+        data["createdAt"] = datetime.now(getColombiaTimezone())  # ← timestamp generado en servidor
         await doc_ref.set(data)
         review.id = doc_ref.id
         review.created_at = data["createdAt"]
@@ -53,13 +57,6 @@ class ReviewRepository:
             .get()
         )
         return [self._doc_to_review(doc) for doc in docs]
-
-    async def get_average_rating(self, tutor_id: str) -> float | None:
-        """Promedio de rating de un tutor. Retorna None si no tiene reviews."""
-        reviews = await self.get_by_tutor(tutor_id)
-        if not reviews:
-            return None
-        return round(sum(r.rating for r in reviews) / len(reviews), 2)
 
     async def get_by_tutor_and_author(self, tutor_id: str, author_id: str) -> Review | None:
         """Verifica si un autor ya dejó una review a un tutor específico."""

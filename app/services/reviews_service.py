@@ -1,6 +1,7 @@
 # app/services/review_service.py
 
 from fastapi import HTTPException, status
+from app.dtos.review_response import ReviewResponse
 from app.models.reviews import Review
 from app.repositories.reviews_repository import ReviewRepository
 from app.repositories.user_repository import UserRepository
@@ -48,6 +49,9 @@ class ReviewService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"El usuario '{review.author_id}' ya dejó una reseña al tutor '{review.tutor_id}'."
             )
+        tutor.tutorRating=tutor.tutorRating+review.rating/(tutor.receivedRatings+1)
+        tutor.receivedRatings=tutor.receivedRatings+1
+        await self.user_repo.update(tutor.id, tutor)
         return await self.review_repo.create(review)
 
     # ------------------------------------------------------------------ READ
@@ -60,7 +64,7 @@ class ReviewService:
             )
         return review
     #Cambio para Carga review
-    async def get_by_tutor(self, tutor_id: str):
+    async def get_by_tutor(self, tutor_id: str) -> list[ReviewResponse]:
         reviews = await self.review_repo.get_by_tutor(tutor_id)
 
         enriched_reviews = []
@@ -68,14 +72,14 @@ class ReviewService:
         for review in reviews:
             user = await self.user_repo.get_by_id(review.author_id)
 
-            enriched_reviews.append({
-                "authorId": review.author_id,
-                "authorName": user.name,
-                "authorImage": user.profile_image_url,
-                "details": review.details,
-                "rating": review.rating,
-                "createdAt": review.created_at,
-            })
+            enriched_reviews.append(ReviewResponse(
+                authorId=review.author_id,
+                authorName=user.name,
+                authorImage=user.profile_image_url,
+                details=review.details,
+                rating=review.rating,
+                createdAt=review.created_at,
+            ))
 
         return enriched_reviews
 
@@ -87,24 +91,6 @@ class ReviewService:
             )
         return await self.review_repo.get_by_author(author_id)
 
-    async def get_average_rating(self, tutor_id: str) -> dict:
-        tutor = await self.user_repo.get_by_id(tutor_id)
-        if not tutor:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Tutor '{tutor_id}' no encontrado."
-            )
-        if not tutor.is_tutoring:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"El usuario '{tutor_id}' no es tutor."
-            )
-        avg = await self.review_repo.get_average_rating(tutor_id)
-        return {
-            "tutor_id":     tutor_id,
-            "average":      avg,
-            "total_reviews": len(await self.review_repo.get_by_tutor(tutor_id))
-        }
 
     # ------------------------------------------------------------------ DELETE
     async def delete(self, review_id: str, requesting_user_id: str) -> bool:
@@ -120,4 +106,9 @@ class ReviewService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Solo el autor puede eliminar su propia reseña."
             )
+        tutor=await self.user_repo.get_by_id(review.tutor_id)
+        tutor.tutorRating=(tutor.tutorRating*tutor.receivedRatings-review.rating)/(tutor.receivedRatings-1)
+        tutor.receivedRatings=tutor.receivedRatings-1
+        await self.user_repo.update(tutor.id, tutor)
+
         return await self.review_repo.delete(review_id)

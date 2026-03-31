@@ -1,6 +1,7 @@
 # app/repositories/user_repository.py
 
 from google.cloud.firestore_v1 import AsyncClient, ArrayUnion, ArrayRemove
+from app.core.currentWeekManager import getColombiaTimezone, refactorTimezone
 from app.models.user import User, Availability, PaymentMethod
 
 
@@ -14,16 +15,31 @@ class UserRepository:
         self.col = db.collection(COLLECTION)
 
     # ------------------------------------------------------------------ HELPERS
+    def refactorAvailability(self, availability: Availability) -> dict:
+        for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']:
+            slots = getattr(availability, day)
+            if slots:
+                setattr(availability, day, [refactorTimezone(slot) for slot in slots])
+        return availability
+    
     def _doc_to_user(self, doc) -> User:
-        return User(id=doc.id, **doc.to_dict())
+        data = doc.to_dict()
+        data.pop("id", None)  # ← Remover "id" manualmente
+        user= User(id=doc.id, **data)
+        user.availability= self.refactorAvailability(user.availability)
+        return user
 
     # ------------------------------------------------------------------ CREATE
     async def create(self, user: User) -> User:
-        doc_ref = self.col.document()
-        data = user.model_dump(by_alias=True, exclude={"id"})
+        if user.id is not None:
+            doc_ref = self.col.document(user.id)
+        else:
+            doc_ref = self.col.document()
+        data = user.model_dump(by_alias=True)
         await doc_ref.set(data)
         user.id = doc_ref.id
         return user
+
 
     # ------------------------------------------------------------------ READ
     async def get_by_id(self, user_id: str) -> User | None:
@@ -37,16 +53,6 @@ class UserRepository:
         if not docs:
             return None
         return self._doc_to_user(docs[0])
-
-    async def get_by_uniandes_id(self, uniandes_id: int) -> User | None:
-        docs = await self.col.where("uniandesId", "==", uniandes_id).limit(1).get()
-        if not docs:
-            return None
-        return self._doc_to_user(docs[0])
-
-    async def get_all(self) -> list[User]:
-        docs = await self.col.get()
-        return [self._doc_to_user(doc) for doc in docs]
 
     async def get_all_tutors(self) -> list[User]:
         docs = await self.col.where("isTutoring", "==", True).get()
@@ -65,7 +71,7 @@ class UserRepository:
         docs = await (
             self.col
             .where("isTutoring", "==", True)
-            .where("tutoringSkills", "array-contains-any", skill_ids[:30])
+            .where("tutoringSkills", "array_contains_any", skill_ids[:30])
             .get()
         )
         return [self._doc_to_user(doc) for doc in docs]
@@ -96,6 +102,20 @@ class UserRepository:
         doc = await doc_ref.get()
         if not doc.exists:
             return None
+        #corregir zona horaria
+        if availability:
+            for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']:
+                slots = getattr(availability, day)
+                if slots:
+                    fixed_slots = []
+                    for slot in slots:
+                        if slot.tzinfo is None or slot.tzinfo != getColombiaTimezone():
+                            correction= slot.replace(tzinfo=None)
+                            fixed_slots.append(correction.replace(tzinfo=getColombiaTimezone()))
+                        else:
+                            fixed_slots.append(slot)
+                    setattr(availability, day, fixed_slots)
+
         await doc_ref.update({"availability": availability.model_dump(by_alias=True)})
         return self._doc_to_user(await doc_ref.get())
 
@@ -121,6 +141,14 @@ class UserRepository:
         if not doc.exists:
             return None
         await doc_ref.update({"favTutors": fav_tutor_ids})
+        return self._doc_to_user(await doc_ref.get())
+    
+    async def update_session_price(self, user_id: str, session_price: int) -> User | None:
+        doc_ref = self.col.document(user_id)
+        doc = await doc_ref.get()
+        if not doc.exists:
+            return None
+        await doc_ref.update({"sessionPrice": session_price})
         return self._doc_to_user(await doc_ref.get())
 
     # -------- Payment Methods
@@ -180,7 +208,7 @@ class UserRepository:
         """Retorna todos los usuarios que tienen a tutor_id en su lista de favoritos."""
         docs = await (
             self.col
-            .where("favTutors", "array-contains", tutor_id)
+            .where("favTutors", "array_contains", tutor_id)
             .get()
         )
         return [self._doc_to_user(doc) for doc in docs]

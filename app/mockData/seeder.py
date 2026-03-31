@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 from google.cloud.firestore_v1 import AsyncClient
+from app.core.currentWeekManager import getColombiaTimezone
 from app.mockData.users    import MOCK_USERS
 from app.mockData.skills   import MOCK_SKILLS
 from app.mockData.reviews  import MOCK_REVIEWS
@@ -35,7 +36,7 @@ async def seed(db: AsyncClient):
         if data["isTutoring"]:
             data["tutoringSkills"] = skill_map.get(data["major"], [])
         data["availability"] = {
-            day: [ts if isinstance(ts, datetime) else datetime.fromisoformat(ts)
+            day: [ts if isinstance(ts, datetime) else datetime.fromisoformat(ts).replace(tzinfo=getColombiaTimezone())
                 for ts in slots]
             for day, slots in data["availability"].items()
         }
@@ -52,14 +53,14 @@ async def seed(db: AsyncClient):
     # ------------------------------------------------------------------ Sessions
     for session_data in MOCK_SESSIONS:
         skill_doc = db.collection("skills").document(
-            SEEDED_IDS["skills"][session_data["_skill_index"]]
+            SEEDED_IDS["skills"][session_data["skill"]["id"]]
         )
         skill_full = (await skill_doc.get()).to_dict()
         
         ref = db.collection("sessions").document()
         await ref.set({
-            "studentId":   SEEDED_IDS["users"][session_data["_student_index"]],
-            "tutorId":     SEEDED_IDS["users"][session_data["_tutor_index"]],
+            "student":   session_data["student"],
+            "tutor":     session_data["tutor"],
             "skill":       skill_full,        # ← objeto completo del skill
             "scheduledAt": session_data["scheduledAt"],
             "status":      "Pendiente",
@@ -80,7 +81,7 @@ async def seed(db: AsyncClient):
             "rating":    review_data["rating"],
             "label":     review_data["label"],
             "details":   review_data["details"],
-            "createdAt": datetime.now(timezone.utc),
+            "createdAt": datetime.now(getColombiaTimezone()),
         })
         SEEDED_IDS["reviews"].append(ref.id)
 
@@ -97,7 +98,7 @@ async def seed(db: AsyncClient):
             "status":          "Pendiente",
             "topic":           pqr_data["topic"],
             "description":     pqr_data["description"],
-            "createdAt":       datetime.now(timezone.utc),
+            "createdAt":       datetime.now(getColombiaTimezone()),
             "relatedIncident": related,
         })
         SEEDED_IDS["pqrs"].append(ref.id)

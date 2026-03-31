@@ -17,7 +17,7 @@ class Review(BaseModel):
     rating:    float = Field(..., ge=0.0, le=5.0,  description="Calificación entre 0.0 y 5.0")
     label:     str = Field(..., max_length=50,      description="Título corto de la review")
     details:   str = Field(...,                     description="Descripción o detalles de la review")
-    created_at: datetime = Field(..., alias="createdAt", description="Fecha y hora de publicación")
+    created_at: datetime|None = Field(default=None, alias="createdAt", description="Fecha y hora de publicación")
 
     model_config = {
         "populate_by_name": True,

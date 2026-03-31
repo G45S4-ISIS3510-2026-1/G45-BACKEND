@@ -2,17 +2,37 @@
 
 from datetime import datetime, timezone
 
+from app.core.currentWeekManager import getColombiaTimezone
+
 MOCK_SESSIONS: list[dict] = [
-    {
-        "_student_index": 2,   # Andrés
-        "_tutor_index":   0,   # Nicolás
-        "_skill_index":   0,   # Estructuras de Datos (primer skill)
-        "scheduledAt": datetime(2026, 3, 23, 9, 0, 0, tzinfo=timezone.utc),
+    {  # Andrés
+        "student": {
+            "id": 2,
+            "name": "Andrés Gomez"
+        },
+        "tutor":{
+            "id": 0,
+            "name": "Nicolás Ballen"
+        },
+        "skill":   {
+            "id": 0,
+            "label": "Estructuras de Datos"
+        },
+        "scheduledAt": datetime(2026, 3, 23, 9, 0, 0, tzinfo=getColombiaTimezone()),
     },
     {
-        "_student_index": 2,   # Andrés
-        "_tutor_index":   1,   # Laura
-        "_skill_index":   2,   # Cálculo Diferencial (tercer skill)
-        "scheduledAt": datetime(2026, 3, 24, 10, 0, 0, tzinfo=timezone.utc),
+        "student": {
+            "id": 2,
+            "name": "Andrés Gomez"
+        },
+        "tutor":{
+            "id": 1,
+            "name": "Laura Martínez"
+        },
+        "skill":   {
+            "id": 2,
+            "label": "Cálculo Diferencial"
+        },
+        "scheduledAt": datetime(2026, 3, 24, 10, 0, 0, tzinfo=getColombiaTimezone()),
     },
 ]

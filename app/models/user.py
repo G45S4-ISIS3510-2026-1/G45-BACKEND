@@ -65,6 +65,18 @@ class User(BaseModel):
     )
 
     availability: Availability = Field(default_factory=Availability)
+    tutorRating: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=5.0,
+        alias="tutorRating"
+    )
+    receivedRatings: int = Field(
+        default=0,
+        ge=0,
+        alias="receivedRatings"
+    )
+
     payment_methods: Annotated[
         list[PaymentMethod],
         Field(max_length=3)
@@ -76,8 +88,6 @@ class User(BaseModel):
         ge=0,
         description="Precio por sesión en pesos colombianos (solo aplica si isTutoring=True)"
     )
-    
-    # app/models/user.py — agrega el campo
 
     profile_image_url: str | None = Field(
         default=None,
@@ -99,6 +109,8 @@ class User(BaseModel):
                 "favTutors": ["uid_tutor_1"],
                 "tutoringSkills":  ["skill_001", "skill_002"],
                 "interestedSkills": ["skill_042"],
+                "tutorRating": 4.5,
+                "receivedRatings": 10,
                 "availability": {
                     "monday": ["2026-03-16T09:00:00"],
                     "tuesday": [],

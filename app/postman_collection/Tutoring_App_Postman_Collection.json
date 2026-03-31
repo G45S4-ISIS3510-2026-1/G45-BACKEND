@@ -1,0 +1,1269 @@
+{
+  "info": {
+    "_postman_id": "54d87c6e-06b4-4aba-94c3-dae7663c04f1",
+    "name": "Tutoring API",
+    "description": "Colección generada automáticamente desde openapi.json para testear la API local en el puerto 8000.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "37641259"
+  },
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const responseBody = pm.response.json();\r",
+                  "const id = responseBody.id;\r",
+                  "pm.collectionVariables.set(\"user_id\", id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"availability\": {\n    \"friday\": [],\n    \"monday\": [\n    ],\n    \"saturday\": [],\n    \"thursday\": [],\n    \"tuesday\": [],\n    \"wednesday\": [\n    ]\n  },\n  \"email\": \"prueba2@uniandes.edu.co\",\n  \"favTutors\": [\n  ],\n  \"fcmTokens\": [\n  ],\n  \"interestedSkills\": [\n  ],\n  \"isTutoring\": false,\n  \"major\": \"Ingeniería de Sistemas y Computación\",\n  \"name\": \"Nicolás Ballén\",\n  \"paymentMethods\": [\n    {\n      \"cvv\": \"123\",\n      \"exp_month\": 12,\n      \"exp_year\": 2028,\n      \"holder\": \"Nicolás Ballén\",\n      \"number\": \"4111111111111111\"\n    }\n  ],\n  \"profileImageUrl\": \"https://example.com/profiles/nicolas.jpg\",\n  \"receivedRatings\": 0,\n  \"sessionPrice\": 0,\n  \"tutorRating\": 0.0,\n  \"tutoringSkills\": [\n  ],\n  \"uniandesId\": 202012345\n}\n"
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get By Id Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/profile/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "profile",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tutor By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/tutor/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "tutor",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Tutors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/tutors/search",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "tutors",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "John",
+                  "description": "Substring del nombre",
+                  "disabled": true
+                },
+                {
+                  "key": "skill_ids",
+                  "value": "skill_1,skill_2",
+                  "disabled": true
+                },
+                {
+                  "key": "major",
+                  "value": "Ingeniería de Sistemas y Computación",
+                  "disabled": true
+                },
+                {
+                  "key": "min_rating",
+                  "value": "4.5",
+                  "disabled": true
+                },
+                {
+                  "key": "min_price",
+                  "value": "10000",
+                  "disabled": true
+                },
+                {
+                  "key": "max_price",
+                  "value": "50000",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"AsxFPE1EqqTYB2bTDYaZ\",\n    \"name\": \"Nicolás Ballén (Actualizado)\",\n    \"email\": \"prueba2@uniandes.edu.co\",\n    \"major\": \"Ingeniería de Sistemas y Computación\",\n    \"isTutoring\": false,\n    \"uniandesId\": 202012345,\n    \"fcmTokens\": [],\n    \"favTutors\": [],\n    \"tutoringSkills\": [],\n    \"interestedSkills\": [],\n    \"availability\": {\n        \"monday\": [],\n        \"tuesday\": [],\n        \"wednesday\": [],\n        \"thursday\": [],\n        \"friday\": [],\n        \"saturday\": []\n    },\n    \"tutorRating\": 0.0,\n    \"receivedRatings\": 0,\n    \"paymentMethods\": [\n        {\n            \"number\": \"4111111111111111\",\n            \"cvv\": \"123\",\n            \"holder\": \"Nicolás Ballén\",\n            \"exp_month\": 12,\n            \"exp_year\": 2028\n        }\n    ],\n    \"sessionPrice\": 0,\n    \"profileImageUrl\": \"https://example.com/profiles/nicolas.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set Tutoring",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/tutoring?is_tutoring=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "tutoring"
+              ],
+              "query": [
+                {
+                  "key": "is_tutoring",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Availability",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\n{\n    \"friday\": [],\n    \"monday\": [\"2026-03-30T08:00:00\", \"2026-03-30T11:00:00\"],\n    \"saturday\": [],\n    \"thursday\": [],\n    \"tuesday\": [],\n    \"wednesday\": [\n    ]\n  }"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/availability",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "availability"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Tutoring Skills",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\"skill_id_1\", \"skill_id_2\"]"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/:user_id/tutoring-skills",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ":user_id",
+                "tutoring-skills"
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
+                  "value": "123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Interested Skills",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\"skill_id_3\", \"skill_id_4\"]"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/:user_id/interested-skills",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ":user_id",
+                "interested-skills"
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
+                  "value": "123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Fav Tutors",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\"tutor_id_1\", \"tutor_id_2\"]"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/:user_id/fav-tutors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ":user_id",
+                "fav-tutors"
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
+                  "value": "123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Session Price",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/session-price?new_price=26000",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "session-price"
+              ],
+              "query": [
+                {
+                  "key": "new_price",
+                  "value": "26000"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile Image",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/profile-image?image_url=https://example.com/image.jpg",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{user_id}}",
+                "profile-image"
+              ],
+              "query": [
+                {
+                  "key": "image_url",
+                  "value": "https://example.com/image.jpg"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Payment Method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"4111222233334444\",\n  \"cvv\": \"123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/:user_id/payment-methods",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ":user_id",
+                "payment-methods"
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
+                  "value": "123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Payment Method",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/:user_id/payment-methods/:card_number",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ":user_id",
+                "payment-methods",
+                ":card_number"
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
+                  "value": "123"
+                },
+                {
+                  "key": "card_number",
+                  "value": "4111222233334444"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/:user_id/login?fcm_token=example_token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ":user_id",
+                "login"
+              ],
+              "query": [
+                {
+                  "key": "fcm_token",
+                  "value": "example_token"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
+                  "value": "123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/:user_id/logout?fcm_token=example_token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ":user_id",
+                "logout"
+              ],
+              "query": [
+                {
+                  "key": "fcm_token",
+                  "value": "example_token"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
+                  "value": "123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Nueva sesión reservada\",\n  \"body\": \"Tienes una tutoría de Cálculo el lunes a las 9:00 AM.\",\n  \"data\": {\n    \"sessionId\": \"session_abc123\",\n    \"type\": \"SESSION_BOOKED\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/:user_id/notify",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                ":user_id",
+                "notify"
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
+                  "value": "123"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints relacionados con usuarios"
+    },
+    {
+      "name": "Skills",
+      "item": [
+        {
+          "name": "Get All Skills",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/skills/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "skills",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Skill",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Calculus I\",\n  \"description\": \"Basic calculus\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/skills/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "skills",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Majors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/skills/majors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "skills",
+                "majors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get By Major",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/skills/by-major/:major",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "skills",
+                "by-major",
+                ":major"
+              ],
+              "variable": [
+                {
+                  "key": "major",
+                  "value": "Ingeniería de Sistemas"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get By Ids",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/skills/by-ids?ids=skill_1&ids=skill_2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "skills",
+                "by-ids"
+              ],
+              "query": [
+                {
+                  "key": "ids",
+                  "value": "skill_1"
+                },
+                {
+                  "key": "ids",
+                  "value": "skill_2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Icon Url",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/skills/:skill_id/icon?icon_url=https://example.com/icon.png",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "skills",
+                ":skill_id",
+                "icon"
+              ],
+              "query": [
+                {
+                  "key": "icon_url",
+                  "value": "https://example.com/icon.png"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "skill_id",
+                  "value": "skill_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints relacionados con habilidades o áreas de conocimiento"
+    },
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tutor_id\": \"tutor_123\",\n  \"author_id\": \"student_123\",\n  \"rating\": 5,\n  \"comment\": \"Excellent tutor!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reviews/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Review By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reviews/:review_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews",
+                ":review_id"
+              ],
+              "variable": [
+                {
+                  "key": "review_id",
+                  "value": "rev_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reviews By Tutor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reviews/by-tutor/:tutor_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews",
+                "by-tutor",
+                ":tutor_id"
+              ],
+              "variable": [
+                {
+                  "key": "tutor_id",
+                  "value": "tutor_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reviews By Author",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reviews/by-author/:author_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews",
+                "by-author",
+                ":author_id"
+              ],
+              "variable": [
+                {
+                  "key": "author_id",
+                  "value": "student_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reviews/:review_id/by/:requesting_user_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "reviews",
+                ":review_id",
+                "by",
+                ":requesting_user_id"
+              ],
+              "variable": [
+                {
+                  "key": "review_id",
+                  "value": "rev_123"
+                },
+                {
+                  "key": "requesting_user_id",
+                  "value": "student_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints relacionados con reseñas"
+    },
+    {
+      "name": "Sessions",
+      "item": [
+        {
+          "name": "Create Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledAt\": \"2026-03-31T10:00:00\",\n  \"skill\": {\n    \"id\": \"LZU3BBwT7iJmsMFGb20e\",\n    \"label\": \"Habilidad para programar en lenguaje Python\"\n  },\n  \"status\": \"Pendiente\",\n  \"student\": {\n    \"id\": \"AsxFPE1EqqTYB2bTDYaZ\",\n    \"name\": \"Andres Gómez\"\n  },\n  \"tutor\": {\n    \"id\": \"h3vNtA9Cg2ZG7FF7y5ZP\",\n    \"name\": \"Laura Martinez\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/sessions/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sessions",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Session By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions/ugi4atThOpb6woi9DGuA",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sessions",
+                "ugi4atThOpb6woi9DGuA"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sessions By Student",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions/by-student/AsxFPE1EqqTYB2bTDYaZ",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sessions",
+                "by-student",
+                "AsxFPE1EqqTYB2bTDYaZ"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sessions By Tutor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions/by-tutor/:tutor_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sessions",
+                "by-tutor",
+                ":tutor_id"
+              ],
+              "variable": [
+                {
+                  "key": "tutor_id",
+                  "value": "tutor_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Session",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions/ugi4atThOpb6woi9DGuA/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sessions",
+                "ugi4atThOpb6woi9DGuA",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Session",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sessions/:session_id/confirm?verif_code=A1B2C3",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sessions",
+                ":session_id",
+                "confirm"
+              ],
+              "query": [
+                {
+                  "key": "verif_code",
+                  "value": "A1B2C3"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "session_id",
+                  "value": "session_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints relacionados con las tutorías"
+    },
+    {
+      "name": "PQRs",
+      "item": [
+        {
+          "name": "Create PQR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authorId\": \"uid_estudiante_1\",\n  \"createdAt\": \"2026-03-30T16:30:00Z\",\n  \"description\": \"El tutor confirmó la sesión pero nunca se conectó a la videollamada.\",\n  \"relatedIncident\": \"session_id_abc123\",\n  \"status\": \"Pendiente\",\n  \"topic\": \"Tutor no se presentó a la sesión\",\n  \"type\": \"Queja\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pqrs/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pqrs",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get PQRs By Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pqrs/by-status?status_filter=Pendiente",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pqrs",
+                "by-status"
+              ],
+              "query": [
+                {
+                  "key": "status_filter",
+                  "value": "Pendiente"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get PQRs By Type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pqrs/by-type?pqr_type=Queja",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pqrs",
+                "by-type"
+              ],
+              "query": [
+                {
+                  "key": "pqr_type",
+                  "value": "Queja"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get PQRs By Author",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pqrs/by-author/:author_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pqrs",
+                "by-author",
+                ":author_id"
+              ],
+              "variable": [
+                {
+                  "key": "author_id",
+                  "value": "uid_estudiante_1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get PQRs By Session Incident",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pqrs/by-session/:session_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pqrs",
+                "by-session",
+                ":session_id"
+              ],
+              "variable": [
+                {
+                  "key": "session_id",
+                  "value": "session_id_abc123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get PQR By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pqrs/:pqr_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pqrs",
+                ":pqr_id"
+              ],
+              "variable": [
+                {
+                  "key": "pqr_id",
+                  "value": "pqr_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark PQR In Review",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pqrs/:pqr_id/review",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pqrs",
+                ":pqr_id",
+                "review"
+              ],
+              "variable": [
+                {
+                  "key": "pqr_id",
+                  "value": "pqr_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolve PQR",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pqrs/:pqr_id/resolve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pqrs",
+                ":pqr_id",
+                "resolve"
+              ],
+              "variable": [
+                {
+                  "key": "pqr_id",
+                  "value": "pqr_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel PQR",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pqrs/:pqr_id/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pqrs",
+                ":pqr_id",
+                "cancel"
+              ],
+              "variable": [
+                {
+                  "key": "pqr_id",
+                  "value": "pqr_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete PQR",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/pqrs/:pqr_id/by/:requesting_user_id",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pqrs",
+                ":pqr_id",
+                "by",
+                ":requesting_user_id"
+              ],
+              "variable": [
+                {
+                  "key": "pqr_id",
+                  "value": "pqr_123"
+                },
+                {
+                  "key": "requesting_user_id",
+                  "value": "admin_user_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints relacionados con Peticiones, Quejas y Reclamos"
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    }
+  ]
+}

@@ -56,15 +56,6 @@ class SkillService:
                 detail=f"Skill '{skill_id}' no encontrado."
             )
         return skill
-
-    # ------------------------------------------------------------------ DELETE
-    async def delete(self, skill_id: str) -> bool:
-        if not await self.repo.get_by_id(skill_id):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Skill '{skill_id}' no encontrado."
-            )
-        return await self.repo.delete(skill_id)
     
 
     async def get_all_majors(self) -> list[str]:

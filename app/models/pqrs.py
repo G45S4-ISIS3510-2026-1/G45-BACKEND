@@ -18,7 +18,7 @@ class PQR(BaseModel):
     topic:       str           = Field(...,                      description="Asunto del PQR")
     description: str           = Field(...,                      description="Detalle de la situación")
     author_id:   str           = Field(..., alias="authorId",    description="ID del usuario que genera el PQR")
-    created_at:  datetime      = Field(..., alias="createdAt",   description="Fecha y hora de creación")
+    created_at:  datetime|None      = Field(default=None, alias="createdAt",   description="Fecha y hora de creación")
     related_incident: str | None = Field(
         default=None,
         alias="relatedIncident",

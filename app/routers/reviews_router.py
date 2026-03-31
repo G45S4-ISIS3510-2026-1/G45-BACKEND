@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends
 from app.models.reviews import Review
 from app.services.reviews_service import ReviewService
-from app.models.review_response import ReviewResponse
+from app.dtos.review_response import ReviewResponse
 
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
 
@@ -37,11 +37,6 @@ async def get_by_tutor(tutor_id: str, svc: ReviewService = RS):
 @router.get("/by-author/{author_id}", response_model=list[Review])
 async def get_by_author(author_id: str, svc: ReviewService = RS):
     return await svc.get_by_author(author_id)
-
-@router.get("/by-tutor/{tutor_id}/average", response_model=dict)
-async def get_average_rating(tutor_id: str, svc: ReviewService = RS):
-    return await svc.get_average_rating(tutor_id)
-
 
 # ------------------------------------------------------------------ DELETE
 

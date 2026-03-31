@@ -33,26 +33,17 @@ async def get_by_id(session_id: str, svc: SessionService = SS):
 @router.get("/by-student/{student_id}", response_model=list[Session])
 async def get_by_student(
     student_id:    str,
-    status_filter: SessionStatus | None = Query(default=None, description="Filtrar por estado"),
     svc:           SessionService = SS,
 ):
-    if status_filter:
-        return await svc.get_by_student_and_status(student_id, status_filter)
     return await svc.get_by_student(student_id)
 
 @router.get("/by-tutor/{tutor_id}", response_model=list[Session])
 async def get_by_tutor(
     tutor_id:      str,
-    status_filter: SessionStatus | None = Query(default=None, description="Filtrar por estado"),
     svc:           SessionService = SS,
 ):
-    if status_filter:
-        return await svc.get_by_tutor_and_status(tutor_id, status_filter)
     return await svc.get_by_tutor(tutor_id)
 
-@router.get("/between/{student_id}/{tutor_id}", response_model=list[Session])
-async def get_sessions_between(student_id: str, tutor_id: str, svc: SessionService = SS):
-    return await svc.get_sessions_between(student_id, tutor_id)
 
 
 # ------------------------------------------------------------------ UPDATE
@@ -68,10 +59,3 @@ async def confirm_session(
     svc:         SessionService = SS,
 ):
     return await svc.confirm(session_id, verif_code)
-
-
-# ------------------------------------------------------------------ DELETE
-
-@router.delete("/{session_id}", status_code=204)
-async def delete_session(session_id: str, svc: SessionService = SS):
-    await svc.delete(session_id)

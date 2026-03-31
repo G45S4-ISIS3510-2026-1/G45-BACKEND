@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 from google.cloud.firestore_v1 import AsyncClient
+from app.core.currentWeekManager import getColombiaTimezone, refactorTimezone
 from app.models.pqrs import PQR
 from app.models.enums import SessionStatus, PQRType
 
@@ -16,13 +17,16 @@ class PQRRepository:
 
     # ------------------------------------------------------------------ HELPERS
     def _doc_to_pqr(self, doc) -> PQR:
-        return PQR(id=doc.id, **doc.to_dict())
+        pqr= PQR(id=doc.id, **doc.to_dict())
+        #presentar created_at en timezone de Colombia para evitar confusiones (Firestore siempre guarda en UTC)
+        pqr.created_at = refactorTimezone(pqr.created_at)
+        return pqr
 
     # ------------------------------------------------------------------ CREATE
     async def create(self, pqr: PQR) -> PQR:
         doc_ref = self.col.document()
         data = pqr.model_dump(by_alias=True, exclude={"id"})
-        data["createdAt"] = datetime.now(timezone.utc)  # asignado en servidor
+        data["createdAt"] = datetime.now(getColombiaTimezone())  # asignado en servidor
         await doc_ref.set(data)
         pqr.id = doc_ref.id
         pqr.created_at = data["createdAt"]
