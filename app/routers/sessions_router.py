@@ -44,6 +44,13 @@ async def get_by_tutor(
 ):
     return await svc.get_by_tutor(tutor_id)
 
+@router.get("/between/{tutor_id}/{student_id}", response_model=list[Session])
+async def get_between_tutor_and_student(
+    tutor_id:     str,
+    student_id:   str,
+    svc:           SessionService = SS,
+):
+    return await svc.get_by_tutor_and_student(tutor_id, student_id)
 
 
 # ------------------------------------------------------------------ UPDATE

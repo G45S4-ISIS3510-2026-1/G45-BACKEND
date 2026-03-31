@@ -69,7 +69,14 @@ class SessionRepository:
         )
         return [self._doc_to_session(doc) for doc in docs]
 
-
+    async def get_by_tutor_and_student(self, tutor_id: str, student_id: str) -> list[Session]:
+        docs = await (
+            self.col
+            .where(filter=FieldFilter("tutor.id", "==", tutor_id))
+            .where(filter=FieldFilter("student.id", "==", student_id))
+            .get()
+        )
+        return [self._doc_to_session(doc) for doc in docs]
     # ------------------------------------------------------------------ UPDATE
     async def update_status(self, session_id: str, status: SessionStatus) -> Session | None:
         doc_ref = self.col.document(session_id)

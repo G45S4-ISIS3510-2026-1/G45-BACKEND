@@ -1,6 +1,6 @@
 # app/services/user_service.py
 
-from datetime import datetime
+from datetime import date, datetime
 
 from fastapi import HTTPException, status
 from app.core.currentWeekManager import getColombiaWeekDate
@@ -23,9 +23,9 @@ class UserService:
 
     #------------------------------------------------------------------- HELPERS
     
-    def _validate_free_slots(slot:datetime, date: datetime, sessions: list[Session]) -> bool:
+    def _validate_free_slots(self, slot:datetime, date: date, sessions: list[Session]) -> bool:
         slotHour = slot.hour
-        day=date.date()
+        day=date
         for session in sessions:
             if session.scheduledAt.date() == day and session.scheduledAt.hour == slotHour:
                 return False
@@ -33,12 +33,12 @@ class UserService:
         
     def getFreeSlots(self, availability: Availability, sessions: list[Session]) -> Availability:
         free_slots = Availability()
-        for weekDay, slots in availability.model_dump(by_alias=True).items():
+        for weekDay in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]:
             day=getColombiaWeekDate(weekDay)
-            free_slots.model_dump(by_alias=True)[day] = [
-                slot for slot in slots
-                if self._validate_free_slots(slot, day, sessions)
-            ]
+            for slot in getattr(availability, weekDay):
+                print(f"Validando slot {slot} del día {weekDay} ({day}) para sesiones: {[s.scheduledAt for s in sessions]}")
+                if self._validate_free_slots(slot, day, sessions):
+                    getattr(free_slots, weekDay).append(slot)
         return free_slots
         
     

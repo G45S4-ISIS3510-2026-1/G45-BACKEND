@@ -76,6 +76,7 @@ class ReviewService:
                 authorId=review.author_id,
                 authorName=user.name,
                 authorImage=user.profile_image_url,
+                label=review.label,
                 details=review.details,
                 rating=review.rating,
                 createdAt=review.created_at,

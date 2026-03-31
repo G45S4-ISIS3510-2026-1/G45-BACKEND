@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from fastapi import HTTPException, status
 from app.core.currentWeekManager import getColombiaTimezone
 from app.models.notification import NotificationPayload
-from app.models.sessions import Session
+from app.models.sessions import ParticipantSummary, Session, SkillSummary
 from app.models.enums import SessionStatus
 from app.repositories.sessions_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
@@ -163,6 +163,9 @@ class SessionService:
                 body=f"El estudiante {student.name} ha solicitado una sesión para el {scheduled.strftime('%Y-%m-%d %H:%M')}.",
             )
         )
+        session.student=ParticipantSummary(id=student.id, name=student.name)
+        session.tutor=ParticipantSummary(id=tutor.id, name=tutor.name)
+        session.skill=SkillSummary(id=skill.id, label=skill.label) if session.skill else None
         return await self.session_repo.create(session)
 
     # ------------------------------------------------------------------ READ
@@ -190,6 +193,19 @@ class SessionService:
                 detail=f"Tutor '{tutor_id}' no encontrado."
             )
         return await self.session_repo.get_by_tutor(tutor_id)
+    
+    async def get_by_tutor_and_student(self, tutor_id: str, student_id: str) -> list[Session]:
+        if not await self.user_repo.get_by_id(tutor_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Tutor '{tutor_id}' no encontrado."
+            )
+        if not await self.user_repo.get_by_id(student_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Estudiante '{student_id}' no encontrado."
+            )
+        return await self.session_repo.get_by_tutor_and_student(tutor_id, student_id)
 
     # ------------------------------------------------------------------ UPDATE
 
