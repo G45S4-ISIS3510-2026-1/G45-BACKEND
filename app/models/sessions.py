@@ -10,6 +10,7 @@ class ParticipantSummary(BaseModel):
     """Resumen básico de un participante en la sesión (tutor o estudiante)."""
     id: str = Field(..., description="ID del usuario")
     name: str = Field(..., description="Nombre completo del usuario")
+    profileImageUrl: str | None = Field(default=None, alias="profileImageUrl", description="URL de la imagen de perfil del usuario")
     
 class SkillSummary(BaseModel):
     """Resumen de la habilidad principal de la sesión."""
@@ -36,11 +37,13 @@ class Session(BaseModel):
             "example": {
                 "student": {
                     "id": "uid_estudiante_123",
-                    "name": "Ana Gómez"
+                    "name": "Ana Gómez",
+                    "profileImageUrl": "https://example.com/images/ana.jpg"
                 },
                 "tutor": {
                     "id": "uid_tutor_123",
-                    "name": "Carlos Rodríguez"
+                    "name": "Carlos Rodríguez",
+                    "profileImageUrl": "https://example.com/images/carlos.jpg"
                 },
                 "scheduledAt": "2026-03-20T10:00:00",
                 "status":      "Pendiente",

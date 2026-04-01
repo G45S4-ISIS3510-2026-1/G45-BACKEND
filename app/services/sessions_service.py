@@ -163,8 +163,8 @@ class SessionService:
                 body=f"El estudiante {student.name} ha solicitado una sesión para el {scheduled.strftime('%Y-%m-%d %H:%M')}.",
             )
         )
-        session.student=ParticipantSummary(id=student.id, name=student.name)
-        session.tutor=ParticipantSummary(id=tutor.id, name=tutor.name)
+        session.student=ParticipantSummary(id=student.id, name=student.name, profileImageUrl=student.profile_image_url)
+        session.tutor=ParticipantSummary(id=tutor.id, name=tutor.name, profileImageUrl=tutor.profile_image_url)
         session.skill=SkillSummary(id=skill.id, label=skill.label) if session.skill else None
         return await self.session_repo.create(session)
 
