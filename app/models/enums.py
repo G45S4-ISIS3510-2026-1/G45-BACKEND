@@ -43,9 +43,14 @@ class SessionStatus(str, Enum):
     CANCELADA   = "Cancelada"
     CONCLUIDA   = "Concluida"
     EN_REVISION = "En Revisión"
+    VENCIDA     = "Vencida"
 
 
 class PQRType(str, Enum):
     QUEJA    = "Queja"
     RECLAMO  = "Reclamo"
     PETICION = "Petición"
+
+class NoveltyType(str, Enum):
+    PRECIO_CAMBIADO = "precio_cambiado"
+    SESION = "sesion"

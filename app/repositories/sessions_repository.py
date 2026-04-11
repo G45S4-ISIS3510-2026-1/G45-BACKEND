@@ -85,12 +85,3 @@ class SessionRepository:
             return None
         await doc_ref.update({"status": status.value})
         return self._doc_to_session(await doc_ref.get())
-
-    # ------------------------------------------------------------------ DELETE
-    async def delete(self, session_id: str) -> bool:
-        doc_ref = self.col.document(session_id)
-        doc = await doc_ref.get()
-        if not doc.exists:
-            return False
-        await doc_ref.delete()
-        return True

@@ -4,9 +4,11 @@ from datetime import date, datetime
 
 from fastapi import HTTPException, status
 from app.core.currentWeekManager import getColombiaWeekDate
+from app.models.novelty import Novelty
 from app.models.sessions import Session
 from app.models.user import User, Availability, PaymentMethod
-from app.models.enums import UniandesMajor
+from app.models.enums import NoveltyType, UniandesMajor
+from app.repositories.novelty_repository import NoveltiesRepository
 from app.repositories.sessions_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
 
@@ -17,9 +19,10 @@ from app.models.notification import NotificationPayload
 
 class UserService:
 
-    def __init__(self, repo: UserRepository, sessionRepo: SessionRepository):
+    def __init__(self, repo: UserRepository, sessionRepo: SessionRepository, noveltyRepo: NoveltiesRepository):
         self.repo = repo
         self.sessionRepo = sessionRepo
+        self.noveltyRepo = noveltyRepo
 
     #------------------------------------------------------------------- HELPERS
     
@@ -388,7 +391,7 @@ class UserService:
         price_label = f"{'Gratis' if new_price == 0 else f'{new_price:,} COP'}"
         payload = NotificationPayload(
             title=f"{tutor.name} actualizó su precio",
-            body=f"Las sesiones con {tutor.name} ahora cuestan {price_label}.",
+            body=f"Las sesiones con {tutor.name}, uno de tus tutores favoritos ahora cuestan {price_label}.",
             data={
                 "type":    "TUTOR_PRICE_UPDATED",
                 "tutorId": user_id,
@@ -396,6 +399,14 @@ class UserService:
             }
         )
         for fan in fans:
+            novelty=Novelty(
+                user_id=fan.id,
+                title=payload.title,
+                description=payload.body,
+                entity_id=user_id,
+                type=NoveltyType.PRECIO_CAMBIADO 
+            )
+            await self.noveltyRepo.create_novelty(novelty)
             if fan.fcm_tokens:
                 try:
                     await self.send_push_notification(fan.id, payload)

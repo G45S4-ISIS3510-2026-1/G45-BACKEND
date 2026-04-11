@@ -4,8 +4,10 @@ from datetime import datetime, timezone, timedelta
 from fastapi import HTTPException, status
 from app.core.currentWeekManager import getColombiaTimezone
 from app.models.notification import NotificationPayload
+from app.models.novelty import Novelty
 from app.models.sessions import ParticipantSummary, Session, SkillSummary
-from app.models.enums import SessionStatus
+from app.models.enums import NoveltyType, SessionStatus
+from app.repositories.novelty_repository import NoveltiesRepository
 from app.repositories.sessions_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
 from app.services.skills_service import SkillService
@@ -26,10 +28,11 @@ WEEKDAY_TO_FIELD = {
 
 class SessionService:
 
-    def __init__(self, session_repo: SessionRepository, user_repo: UserRepository, skill_repo: SkillRepository, user_service:UserService):
+    def __init__(self, session_repo: SessionRepository, user_repo: UserRepository, skill_repo: SkillRepository, novelty_repo: NoveltiesRepository, user_service:UserService):
         self.session_repo = session_repo
         self.user_repo    = user_repo
         self.skill_repo = skill_repo
+        self.novelty_repo = novelty_repo
         self.user_service = user_service
     # ------------------------------------------------------------------ HELPERS
 
@@ -163,10 +166,23 @@ class SessionService:
                 body=f"El estudiante {student.name} ha solicitado una sesión para el {scheduled.strftime('%Y-%m-%d %H:%M')}.",
             )
         )
+        
         session.student=ParticipantSummary(id=student.id, name=student.name, profileImageUrl=student.profile_image_url)
         session.tutor=ParticipantSummary(id=tutor.id, name=tutor.name, profileImageUrl=tutor.profile_image_url)
         session.skill=SkillSummary(id=skill.id, label=skill.label) if session.skill else None
-        return await self.session_repo.create(session)
+        session.price = tutor.session_price
+        created_session = await self.session_repo.create(session)
+        
+        novelty=Novelty(
+            user_id=session.tutor.id,
+            title="Nueva sesión solicitada",
+            description=f"El estudiante {student.name} ha solicitado una sesión para el {scheduled.strftime('%Y-%m-%d %H:%M')}.",
+            type=NoveltyType.SESION,
+            entity_id=session.id
+        )
+        
+        await self.novelty_repo.create(novelty)
+        return created_session
 
     # ------------------------------------------------------------------ READ
     async def get_by_id(self, session_id: str) -> Session:
@@ -206,6 +222,7 @@ class SessionService:
                 detail=f"Estudiante '{student_id}' no encontrado."
             )
         return await self.session_repo.get_by_tutor_and_student(tutor_id, student_id)
+    
 
     # ------------------------------------------------------------------ UPDATE
 
@@ -222,6 +239,21 @@ class SessionService:
                 detail=f"Solo se pueden cancelar sesiones en estado Pendiente. "
                        f"Estado actual: '{session.status.value}'."
             )
+            
+        self.user_service.send_push_notification(
+            user_id=session.tutor.id,
+            payload=NotificationPayload(
+                title="Sesión cancelada",
+                body=f"El estudiante {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
+            )
+        )
+        self.novelty_repo.create(Novelty(
+            user_id=session.tutor.id,
+            title="Sesión cancelada",
+            description=f"El estudiante {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
+            type=NoveltyType.SESION,
+            entity_id=session.id
+        ))
         return await self.session_repo.update_status(session_id, SessionStatus.CANCELADA)
 
     async def confirm(self, session_id: str, verif_code: str) -> Session:
@@ -242,4 +274,20 @@ class SessionService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Código de verificación incorrecto."
             )
-        return await self.session_repo.update_status(session_id, SessionStatus.EN_REVISION)
+            
+        self.user_service.send_push_notification(
+            user_id=session.tutor.id,
+            payload=NotificationPayload(
+                title="Sesión confirmada",
+                body=f"El estudiante {session.student.name} ha confirmado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
+            )
+        )
+        self.novelty_repo.create(Novelty(
+            user_id=session.tutor.id,
+            title="Sesión confirmada",
+            description=f"El estudiante {session.student.name} ha confirmado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
+            type=NoveltyType.SESION,
+            entity_id=session.id
+        ))
+        
+        return await self.session_repo.update_status(session_id, SessionStatus.CONCLUIDA )

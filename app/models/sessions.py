@@ -24,6 +24,10 @@ class Session(BaseModel):
         default=None,
         description="ID del documento en Firestore (se asigna tras la creación)"
     )
+    price: int = Field(
+        default=0, alias="price",
+        ge=0, le=50000, description="Precio de la sesión en pesos colombianos (debe ser igual al sessionPrice del tutor al momento de crear la sesión)"
+    )
     scheduled_at: datetime      = Field(..., alias="scheduledAt", description="Fecha y hora en que ocurrirá la sesión")
     status:       SessionStatus = Field(default=SessionStatus.PENDIENTE, description="Estado actual de la sesión")
     verif_code:   str  |None         = Field(default=None, alias="verifCode",   description="Código alfanumérico de verificación de la sesión")
@@ -47,6 +51,7 @@ class Session(BaseModel):
                 },
                 "scheduledAt": "2026-03-20T10:00:00",
                 "status":      "Pendiente",
+                "price":       15000,
                 "verifCode":   "A3X9KQ",
                 "skill": {
                     "id": "skill_001",

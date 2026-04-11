@@ -10,11 +10,12 @@ from app.routers.skills_router   import router as skill_router
 from app.routers.reviews_router  import router as review_router
 from app.routers.sessions_router import router as session_router
 from app.routers.pqrs_router     import router as pqr_router
+from app.routers.novelty_router import router as novelty_router
 
 from app.core.scheduler import scheduler, setup_scheduler
 from app.tasks.session_reminder import check_upcoming_sessions
 from app.core.config import settings
-from app.mockData.seeder import seed, unseed
+from app.mockData.seeder import seed
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,10 +30,6 @@ async def lifespan(app: FastAPI):
         await seed(get_firestore_client())
 
     yield
-
-    if settings.APP_ENV == "development":
-        from app.core.firebase import get_firestore_client
-        await unseed(get_firestore_client())
 
     scheduler.shutdown()
 
@@ -56,3 +53,4 @@ app.include_router(skill_router)
 app.include_router(review_router)
 app.include_router(session_router)
 app.include_router(pqr_router)
+app.include_router(novelty_router)
