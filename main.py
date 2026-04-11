@@ -13,7 +13,7 @@ from app.routers.pqrs_router     import router as pqr_router
 from app.core.scheduler import scheduler, setup_scheduler
 from app.tasks.session_reminder import check_upcoming_sessions
 from app.core.config import settings
-from app.mockData.seeder import seed, unseed
+from app.mockData.seeder import seed
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,9 +29,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    if settings.APP_ENV == "development":
-        from app.core.firebase import get_firestore_client
-        await unseed(get_firestore_client())
+    
 
     scheduler.shutdown()
 

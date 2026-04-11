@@ -149,12 +149,15 @@ class SessionService:
         await self._assert_no_overlap(session.student_id, scheduled)
         await self._assert_no_overlap(session.tutor_id,   scheduled)
         
-        skill = await self.skill_repo.get_by_id(session.skill.id)
-        if not skill:
+        #Asigna una skill al azar de las habilidades del tutor para esa sesión
+        if not tutor.tutoring_skills:
+            print(f"Intento de crear sesión con tutor_id sin habilidades asignadas: {session.tutor_id}")
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"El skill '{session.skill.id}' no existe."
-            )
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"El tutor '{session.tutor_id}' no tiene habilidades de tutoría asignadas."
+            ) 
+        skill_id = tutor.tutoring_skills[0]  # Por simplicidad, se asigna la primera habilidad
+        skill = await self.skill_repo.get_by_id(skill_id)
         session.skill = skill
 
         return await self.session_repo.create(session)

@@ -22,11 +22,6 @@ class UserService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Ya existe un usuario registrado con el correo '{user.email}'."
             )
-        if await self.repo.get_by_uniandes_id(user.uniandes_id):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Ya existe un usuario registrado con el ID Uniandes '{user.uniandes_id}'."
-            )
         return await self.repo.create(user)
 
     # ------------------------------------------------------------------ READ
