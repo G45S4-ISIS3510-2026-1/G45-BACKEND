@@ -53,12 +53,11 @@ class SessionService:
             if s.status != SessionStatus.PENDIENTE:
                 continue
             if window_start <= s.scheduled_at < window_end:
+                print(f"Conflicto encontrado para usuario '{user_id}': sesión '{s.id}' programada para {s.scheduled_at} dentro de la ventana {window_start} - {window_end}")
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail=(
-                        f"El usuario '{user_id}' ya tiene una sesión reservada/agendada "
-                        f"el {s.scheduled_at.strftime('%Y-%m-%d %H:%M')}, "
-                        f"lo cual entra en conflicto con la hora solicitada."
+                        "Ya tienes una sesión pendiente programada dentro de dicho horario. Revisa o cancela tus sesiones pendientes para agendar esta nueva sesión."
                     )
                 )
 
@@ -181,7 +180,7 @@ class SessionService:
             entity_id=session.id
         )
         
-        await self.novelty_repo.create(novelty)
+        await self.novelty_repo.create_novelty(novelty)
         return created_session
 
     # ------------------------------------------------------------------ READ
@@ -247,7 +246,7 @@ class SessionService:
                 body=f"El estudiante {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
             )
         )
-        self.novelty_repo.create(Novelty(
+        await self.novelty_repo.create_novelty(Novelty(
             user_id=session.tutor.id,
             title="Sesión cancelada",
             description=f"El estudiante {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
@@ -256,7 +255,7 @@ class SessionService:
         ))
         return await self.session_repo.update_status(session_id, SessionStatus.CANCELADA)
 
-    async def confirm(self, session_id: str, verif_code: str) -> Session:
+    async def confirm(self, session_id: str, participant_id: str, verif_code: str) -> Session:
         session = await self.session_repo.get_by_id(session_id)
         if not session:
             raise HTTPException(
@@ -269,23 +268,35 @@ class SessionService:
                 detail=f"Solo se pueden confirmar sesiones en estado Pendiente. "
                        f"Estado actual: '{session.status.value}'."
             )
+        if participant_id != session.student.id and participant_id != session.tutor.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Solo el estudiante o el tutor de la sesión pueden confirmarla."
+            )
         if session.verif_code != verif_code:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Código de verificación incorrecto."
             )
-            
+        mensaje=""
+        userId=""
+        if participant_id == session.tutor.id:
+            userId=session.tutor.id
+            mensaje = f"El estudiante {session.student.name} ha confirmado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}."
+        else:
+            userId=session.student.id
+            mensaje = f"El tutor {session.tutor.name} ha confirmado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}."
         self.user_service.send_push_notification(
-            user_id=session.tutor.id,
+            user_id=userId,
             payload=NotificationPayload(
                 title="Sesión confirmada",
-                body=f"El estudiante {session.student.name} ha confirmado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
+                body=mensaje,
             )
         )
-        self.novelty_repo.create(Novelty(
-            user_id=session.tutor.id,
+        await self.novelty_repo.create_novelty(Novelty(
+            user_id=userId,
             title="Sesión confirmada",
-            description=f"El estudiante {session.student.name} ha confirmado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
+            description=mensaje,
             type=NoveltyType.SESION,
             entity_id=session.id
         ))

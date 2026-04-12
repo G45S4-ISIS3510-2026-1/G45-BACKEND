@@ -39,7 +39,6 @@ class UserService:
         for weekDay in ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]:
             day=getColombiaWeekDate(weekDay)
             for slot in getattr(availability, weekDay):
-                print(f"Validando slot {slot} del día {weekDay} ({day}) para sesiones: {[s.scheduled_at for s in sessions]}")
                 if self._validate_free_slots(slot, day, sessions):
                     getattr(free_slots, weekDay).append(slot)
         return free_slots
@@ -74,7 +73,6 @@ class UserService:
             )
         tutor_sessions = await self.sessionRepo.get_by_tutor(tutor_id)
         tutor_sessions.extend(await self.sessionRepo.get_by_student(tutor_id))
-        print(f"Sesiones encontradas para tutor '{tutor_id}': {[s.scheduled_at for s in tutor_sessions]}")
         tutor.availability = self.getFreeSlots(tutor.availability, tutor_sessions)
         return tutor
 

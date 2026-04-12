@@ -52,12 +52,26 @@ async def get_between_tutor_and_student(
 ):
     return await svc.get_by_tutor_and_student(tutor_id, student_id)
 
+@router.get("/upcoming/{user_id}", response_model=list[Session])
+async def get_upcoming_sessions_for_user(
+    user_id:      str,
+    svc:           SessionService = SS,
+):
+    # return await svc.get_upcoming_sessions_for_user(user_id)
+    return
 
+@router.get("/previous/{user_id}", response_model=list[Session])
+async def get_previous_sessions_for_user(
+    user_id:      str,
+    svc:           SessionService = SS,
+):
+    #return await svc.get_previous_sessions_for_user(user_id)
+    return
 # ------------------------------------------------------------------ UPDATE
 
-@router.patch("/{session_id}/cancel", response_model=Session)
-async def cancel_session(session_id: str, svc: SessionService = SS):
-    return await svc.cancel(session_id)
+@router.patch("/{session_id}/{participant_id}/cancel", response_model=Session)
+async def cancel_session(session_id: str, participant_id: str, svc: SessionService = SS):
+    return await svc.cancel(session_id, participant_id)
 
 @router.patch("/{session_id}/confirm", response_model=Session)
 async def confirm_session(
