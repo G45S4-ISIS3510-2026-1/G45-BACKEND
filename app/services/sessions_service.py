@@ -225,7 +225,7 @@ class SessionService:
 
     # ------------------------------------------------------------------ UPDATE
 
-    async def cancel(self, session_id: str) -> Session:
+    async def cancel(self, session_id: str, participant_id: str) -> Session:
         session = await self.session_repo.get_by_id(session_id)
         if not session:
             raise HTTPException(
@@ -238,7 +238,11 @@ class SessionService:
                 detail=f"Solo se pueden cancelar sesiones en estado Pendiente. "
                        f"Estado actual: '{session.status.value}'."
             )
-            
+        if participant_id != session.student.id and participant_id != session.tutor.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Solo el estudiante o el tutor de la sesión pueden cancelarla."
+            )
         self.user_service.send_push_notification(
             user_id=session.tutor.id,
             payload=NotificationPayload(
