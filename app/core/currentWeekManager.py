@@ -18,7 +18,10 @@ def getStartWeekColombia():
     colombia_tz = getColombiaTimezone()
     # Obtener la fecha actual en el huso horario de Colombia
     today = datetime.now(colombia_tz).date()
-    start_of_week = today - timedelta(days=today.weekday())      # Domingo
+    if today.weekday() == 6 or today.weekday() == 5:  # Si es domingo o sabado, sumar los días necesarios para llegar al lunes siguiente
+        start_of_week = today + timedelta(7-today.weekday())  # Lunes
+    else:  # Si no es domingo ni sabado, restar el número de días correspondiente para obtener el lunes
+        start_of_week = today - timedelta(days=today.weekday())      # Domingo
     return start_of_week
 
 def getColombiaWeekDate(week_day: str):
