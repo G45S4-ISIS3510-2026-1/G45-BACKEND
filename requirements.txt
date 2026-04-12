@@ -17,3 +17,9 @@ APScheduler==3.10.4
 
 # Utilidades de fechas y zonas horarias
 pytz==2024.1
+
+# Data Science & Machine Learning
+numpy==2.4.4
+pandas==3.0.2
+scikit-learn==1.8.0
+scipy==1.17.1
