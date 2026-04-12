@@ -11,6 +11,7 @@ from app.repositories.sessions_repository import SessionRepository
 from app.repositories.pqrs_repository     import PQRRepository
 
 from app.services.novelty_service import NoveltiesService
+from app.services.recommendation_service import RecommenderService
 from app.services.user_service    import UserService
 from app.services.skills_service   import SkillService
 from app.services.reviews_service  import ReviewService
@@ -58,3 +59,6 @@ def get_pqr_service() -> PQRService:
 
 def get_novelty_service() -> NoveltiesService:
     return NoveltiesService(get_novelty_repo())
+
+def get_recommender_service() -> RecommenderService:
+    return RecommenderService(get_user_repo())

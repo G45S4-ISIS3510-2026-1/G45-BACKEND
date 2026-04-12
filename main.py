@@ -11,6 +11,7 @@ from app.routers.reviews_router  import router as review_router
 from app.routers.sessions_router import router as session_router
 from app.routers.pqrs_router     import router as pqr_router
 from app.routers.novelty_router import router as novelty_router
+from app.routers.recomendation_router import router as recommendation_router
 
 from app.core.scheduler import scheduler, setup_scheduler
 from app.tasks.session_reminder import check_upcoming_sessions
@@ -54,3 +55,4 @@ app.include_router(review_router)
 app.include_router(session_router)
 app.include_router(pqr_router)
 app.include_router(novelty_router)
+app.include_router(recommendation_router)
