@@ -13,7 +13,7 @@ from app.dependencies import (
 
 RS = Depends(get_recommender_service)
 
-@router.get("/recommendations", response_model=list[TutorSummary])
+@router.post("/recommendations", response_model=list[TutorSummary])
 async def suggest_tutors(searched_ids: list[str], svc: RecommenderService = RS, n_top: int | None = Query(default=5, ge=1, le=20, description="Número de recomendaciones a retornar")):
     recommendations = await svc.get_recommendations(searched_ids, n_top=n_top)
     tutor_summaries = []
