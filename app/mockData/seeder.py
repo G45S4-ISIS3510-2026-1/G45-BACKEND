@@ -1,6 +1,7 @@
 # app/mockData/seeder.py
 
 from datetime import datetime, timezone, timedelta
+import random
 from google.cloud.firestore_v1 import AsyncClient
 from app.mockData.users    import MOCK_USERS
 from app.mockData.skills   import MOCK_SKILLS
@@ -8,6 +9,17 @@ from app.mockData.reviews  import MOCK_REVIEWS
 from app.mockData.sessions import MOCK_SESSIONS
 from app.mockData.pqrs     import MOCK_PQRS
 from app.repositories.sessions_repository import _generate_verif_code
+
+
+# URL de ejemplo (una API de prueba)
+url = "https://randomuser.me/api/portraits/med/"
+options=["men", "women"]
+image_range = range(1, 76)  # Imágenes del 1 al 75
+
+def get_random_image_url():
+    gender = random.choice(options)
+    image_number = random.choice(image_range)
+    return f"{url}{gender}/{image_number}.jpg"
 
 async def seed(db: AsyncClient):
     """Pobla Firestore siguiendo los esquemas de modelos denormalizados."""
@@ -58,6 +70,8 @@ async def seed(db: AsyncClient):
                 ]
                 for day, slots in data["availability"].items()
             }
+        
+        data["profileImageUrl"] = get_random_image_url()
         
         ref = db.collection("users").document()
         await ref.set(data)
