@@ -49,7 +49,7 @@ def get_skill_service() -> SkillService:
     return SkillService(get_skill_repo())
 
 def get_review_service() -> ReviewService:
-    return ReviewService(get_review_repo(), get_user_repo())
+    return ReviewService(get_review_repo(), get_user_repo(), get_novelty_repo())
 
 def get_session_service() -> SessionService:
     return SessionService(get_session_repo(), get_user_repo(), get_skill_repo(), get_novelty_repo(), get_user_service())

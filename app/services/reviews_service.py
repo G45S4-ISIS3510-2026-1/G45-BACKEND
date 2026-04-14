@@ -2,16 +2,20 @@
 
 from fastapi import HTTPException, status
 from app.dtos.review_response import ReviewResponse
+from app.models.enums import NoveltyType
+from app.models.novelty import Novelty
 from app.models.reviews import Review
+from app.repositories.novelty_repository import NoveltiesRepository
 from app.repositories.reviews_repository import ReviewRepository
 from app.repositories.user_repository import UserRepository
 
 
 class ReviewService:
 
-    def __init__(self, review_repo: ReviewRepository, user_repo: UserRepository):
+    def __init__(self, review_repo: ReviewRepository, user_repo: UserRepository, noveltyRepo: NoveltiesRepository):
         self.review_repo = review_repo
         self.user_repo   = user_repo
+        self.novelty_repo = noveltyRepo
 
     # ------------------------------------------------------------------ CREATE
     async def create(self, review: Review) -> Review:
@@ -52,7 +56,18 @@ class ReviewService:
         tutor.tutorRating=tutor.tutorRating+review.rating/(tutor.receivedRatings+1)
         tutor.receivedRatings=tutor.receivedRatings+1
         await self.user_repo.update(tutor.id, tutor)
-        return await self.review_repo.create(review)
+        newReview=await self.review_repo.create(review)
+        self.novelty_repo.create_novelty(
+            Novelty(
+                user_id=tutor.id,
+                title=f"Nueva reseña de {author.name}",
+                type=NoveltyType.REVIEW,
+                entity_id=newReview.id,
+                description=f"Nuevo review de {author.name} para tutor {tutor.name}: '{review.label}' con calificación {review.rating}: {review.label[:50]}..."
+            )
+        )
+        
+        return newReview
 
     # ------------------------------------------------------------------ READ
     async def get_by_id(self, review_id: str) -> Review:

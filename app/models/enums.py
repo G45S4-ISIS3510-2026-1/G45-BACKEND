@@ -54,3 +54,4 @@ class PQRType(str, Enum):
 class NoveltyType(str, Enum):
     PRECIO_CAMBIADO = "precio_cambiado"
     SESION = "sesion"
+    REVIEW = "review"
