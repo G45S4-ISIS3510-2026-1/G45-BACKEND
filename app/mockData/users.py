@@ -48,6 +48,16 @@ MOCK_USERS: list[dict] = [
         "profileImageUrl": mockImage, "availability": MAX_AVAIL, "paymentMethods": [],
     },
     {
+        "name": "Maria Vuitrago", "email": "m.vuitrago@uniandes.edu.co", "major": UniandesMajor.FISICA, 
+        "isTutoring": True, "uniandesId": 210231232, "sessionPrice": 30000, "tutorRating": 4.5, "receivedRatings": 8,
+        "profileImageUrl": mockImage, "availability": MAX_AVAIL, "paymentMethods": [],
+    },
+    {
+        "name": "Andres Felipe Venimar", "email": "a.felipev@uniandes.edu.co", "major": UniandesMajor.FISICA, 
+        "isTutoring": True, "uniandesId": 220301998, "sessionPrice": 30000, "tutorRating": 4.5, "receivedRatings": 8,
+        "profileImageUrl": mockImage, "availability": MAX_AVAIL, "paymentMethods": [],
+    },
+    {
         "name": "Ana María Silva", "email": "am.silva@uniandes.edu.co", "major": UniandesMajor.BIOLOGIA, 
         "isTutoring": True, "uniandesId": 201922334, "sessionPrice": 18000, "tutorRating": 4.9, "receivedRatings": 12,
         "profileImageUrl": mockImage, "availability": MAX_AVAIL, "paymentMethods": [],
