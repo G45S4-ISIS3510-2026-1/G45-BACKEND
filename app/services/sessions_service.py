@@ -176,7 +176,7 @@ class SessionService:
             user_id=session.tutor.id,
             title="Nueva sesión solicitada",
             description=f"El estudiante {student.name} ha solicitado una sesión para el {scheduled.strftime('%Y-%m-%d %H:%M')}.",
-            type=NoveltyType.SESION,
+            type=NoveltyType.INCOMING_SESSION,
             entity_id=session.id
         )
         

@@ -2,24 +2,28 @@
 
 import asyncio
 from datetime import datetime, timezone, timedelta
+from app.core.currentWeekManager import getColombiaTimezone
 from app.core.firebase import get_firestore_client
+from app.models.novelty import Novelty
+from app.models.sessions import Session
+from app.repositories.novelty_repository import NoveltiesRepository
 from app.repositories.sessions_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
 from app.models.notification import NotificationPayload
-from app.models.enums import SessionStatus
+from app.models.enums import NoveltyType, SessionStatus
 
 
-async def _notify_user(user_repo: UserRepository, user_id: str, session, label: str):
+async def _notify_user(user_repo: UserRepository, novelty_repo: NoveltiesRepository, user_id: str, session:Session, label: str):
     """Envía notificación push a un usuario sobre su sesión próxima."""
     user = await user_repo.get_by_id(user_id)
     if not user or not user.fcm_tokens:
         return
 
     from firebase_admin import messaging
-    scheduled_str = session.scheduled_at.strftime("%d/%m/%Y a las %H:%M")
+    scheduled_str = session.scheduled_at.astimezone(getColombiaTimezone()).strftime("%H:%M") if session.scheduled_at else "fecha desconocida"
     payload = NotificationPayload(
         title="Recordatorio de tutoría 📚",
-        body=f"Tienes una sesión como {label} el {scheduled_str} UTC.",
+        body=f"Hoy tienes una sesión como {label} a las {scheduled_str}. Revisa tus novedades para más detalles.",
         data={
             "type":      "SESSION_REMINDER",
             "sessionId": session.id,
@@ -34,8 +38,17 @@ async def _notify_user(user_repo: UserRepository, user_id: str, session, label: 
         ),
         data=payload.data,
     )
+    
+    novelty= Novelty (
+        user_id=user_id,
+        title="Recordatorio de tutoría",
+        entity_id=session.id,
+        type=NoveltyType.SESION,
+        description=f"Hoy tienes tutoría como {label} con {session.tutor.name if label=="estudiante" else session.student.name} a las {scheduled_str}. No olvides prepararte y asistir puntualmente."
+    )
     try:
-        await messaging.send_each_for_multicast_async(message)
+        await novelty_repo.create_novelty(novelty)
+        await messaging.send_each_for_multicast(message)
     except Exception:
         pass  # No interrumpir el job por fallos individuales
 
@@ -48,8 +61,9 @@ async def check_upcoming_sessions():
     db           = get_firestore_client()
     session_repo = SessionRepository(db)
     user_repo    = UserRepository(db)
+    novelty_repo   = NoveltiesRepository(db)
 
-    now        = datetime.now(timezone.utc)
+    now        = datetime.now(getColombiaTimezone())
     window_end = now + timedelta(hours=24)
 
     # Traer todas las sesiones pendientes
@@ -66,17 +80,17 @@ async def check_upcoming_sessions():
 
         # Normalizar timezone si viene sin tzinfo de Firestore
         if scheduled_at and scheduled_at.tzinfo is None:
-            scheduled_at = scheduled_at.replace(tzinfo=timezone.utc)
+            scheduled_at = scheduled_at.replace(tzinfo=getColombiaTimezone())
 
         if scheduled_at and now <= scheduled_at <= window_end:
             from app.models.sessions import Session
             session = Session(id=doc.id, **session_data)
 
             notify_tasks.append(
-                _notify_user(user_repo, session.student_id, session, "estudiante")
+                _notify_user(user_repo, novelty_repo, session.student.id, session, "estudiante")
             )
             notify_tasks.append(
-                _notify_user(user_repo, session.tutor_id, session, "tutor")
+                _notify_user(user_repo, novelty_repo, session.tutor.id, session, "tutor")
             )
 
     if notify_tasks:

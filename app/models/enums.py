@@ -55,3 +55,4 @@ class NoveltyType(str, Enum):
     PRECIO_CAMBIADO = "precio_cambiado"
     SESION = "sesion"
     REVIEW = "review"
+    INCOMING_SESSION= "nueva_sesion"
