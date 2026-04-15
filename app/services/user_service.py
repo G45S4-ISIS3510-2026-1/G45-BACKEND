@@ -327,7 +327,7 @@ class UserService:
 
         try:
             batch_response: messaging.BatchResponse = (
-                await messaging.send_each_for_multicast(message)
+                messaging.send_each_for_multicast(message)
             )
         except FirebaseError as e:
             raise HTTPException(

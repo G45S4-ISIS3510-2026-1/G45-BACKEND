@@ -48,7 +48,7 @@ async def _notify_user(user_repo: UserRepository, novelty_repo: NoveltiesReposit
     )
     try:
         await novelty_repo.create_novelty(novelty)
-        await messaging.send_each_for_multicast(message)
+        messaging.send_each_for_multicast(message)
     except Exception:
         pass  # No interrumpir el job por fallos individuales
 
