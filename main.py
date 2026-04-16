@@ -14,7 +14,9 @@ from app.routers.novelty_router import router as novelty_router
 from app.routers.recomendation_router import router as recommendation_router
 
 from app.core.scheduler import scheduler, setup_scheduler
+from app.tasks.notify_near_sessions import notify_near_sessions
 from app.tasks.backend_healthcheck import health_check
+from app.tasks.mark_non_confirmed_sessions import mark_non_confirmed_sessions
 from app.tasks.session_reminder import check_upcoming_sessions
 from app.core.config import settings
 from app.mockData.seeder import seed
@@ -25,6 +27,8 @@ async def lifespan(app: FastAPI):
     setup_scheduler([
         (check_upcoming_sessions, {"hour": 12, "minute": 0, "timezone": "America/Bogota"}),
         (health_check, {"minute": "*/5", "timezone": "America/Bogota"}),
+        (mark_non_confirmed_sessions, {"hour": "*", "timezone": "America/Bogota"}),
+        (notify_near_sessions, {"hour": "*", "timezone": "America/Bogota"})
     ])
     scheduler.start()
 

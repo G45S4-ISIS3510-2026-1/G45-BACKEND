@@ -69,14 +69,12 @@ async def check_upcoming_sessions():
     # Traer todas las sesiones pendientes
     # (Firestore no soporta range queries sobre timestamps con otros filtros,
     #  por lo que filtramos en Python tras traer las pendientes)
-    pending = await session_repo.col \
-        .where("status", "==", SessionStatus.PENDIENTE.value) \
-        .get()
+    pending = await session_repo.get_all()
+    pending = [session for session in pending if session.status == SessionStatus.PENDIENTE]
 
     notify_tasks = []
     for doc in pending:
-        session_data = doc.to_dict()
-        scheduled_at = session_data.get("scheduledAt")
+        scheduled_at = doc.scheduled_at
 
         # Normalizar timezone si viene sin tzinfo de Firestore
         if scheduled_at and scheduled_at.tzinfo is None:
@@ -84,13 +82,12 @@ async def check_upcoming_sessions():
 
         if scheduled_at and now <= scheduled_at <= window_end:
             from app.models.sessions import Session
-            session = Session(id=doc.id, **session_data)
 
             notify_tasks.append(
-                _notify_user(user_repo, novelty_repo, session.student.id, session, "estudiante")
+                _notify_user(user_repo, novelty_repo, doc.student.id, doc, "estudiante")
             )
             notify_tasks.append(
-                _notify_user(user_repo, novelty_repo, session.tutor.id, session, "tutor")
+                _notify_user(user_repo, novelty_repo, doc.tutor.id, doc, "tutor")
             )
 
     if notify_tasks:

@@ -43,6 +43,10 @@ class SessionRepository:
         return session
 
     # ------------------------------------------------------------------ READ
+    async def get_all(self) -> list[Session]:
+        docs = await self.col.order_by("scheduledAt", direction="DESCENDING").get()
+        return [self._doc_to_session(doc) for doc in docs]
+    
     async def get_by_id(self, session_id: str) -> Session | None:
         doc = await self.col.document(session_id).get()
         if not doc.exists:

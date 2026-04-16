@@ -56,3 +56,4 @@ class NoveltyType(str, Enum):
     SESION = "sesion"
     REVIEW = "review"
     INCOMING_SESSION= "nueva_sesion"
+    HEALTH_CHECK = "health_check"

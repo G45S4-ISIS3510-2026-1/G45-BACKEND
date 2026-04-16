@@ -2,6 +2,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from firebase_admin import messaging
 
 from app.core.firebase import get_firestore_client
+from app.models.enums import NoveltyType
 from app.models.novelty import Novelty
 from app.repositories.novelty_repository import NoveltiesRepository
 from app.repositories.user_repository import UserRepository
@@ -15,8 +16,10 @@ async def health_check():
         title="Health Check",
         description="This is a periodic health check notification.",
         user_id="system",
-        type="HEALTH_CHECK"
+        type=NoveltyType.HEALTH_CHECK
     )
+    await novelty_repo.create_novelty(novelty)
+    
     for user in users:
         if user.fcm_tokens:
             message = messaging.MulticastMessage(
@@ -25,7 +28,7 @@ async def health_check():
                     title="Health Check",
                     body="This is a periodic health check notification.",
                 ),
-                data={"type": "HEALTH_CHECK"},
+                data={"type": NoveltyType.HEALTH_CHECK},
             )
             try:
                 messaging.send_each_for_multicast(message)
