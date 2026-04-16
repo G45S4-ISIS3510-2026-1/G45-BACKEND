@@ -1,0 +1,25 @@
+from apscheduler.schedulers.blocking import BlockingScheduler
+from firebase_admin import messaging
+
+from app.core.firebase import get_firestore_client
+from app.repositories.user_repository import UserRepository
+async def health_check():
+    db           = get_firestore_client()
+    user_repo    = UserRepository(db)
+    print("Executing task/notification every 5 minutes...")
+    users= await user_repo.get_all()
+    for user in users:
+        if user.fcm_tokens:
+            message = messaging.MulticastMessage(
+                tokens=user.fcm_tokens,
+                notification=messaging.Notification(
+                    title="Health Check",
+                    body="This is a periodic health check notification.",
+                ),
+                data={"type": "HEALTH_CHECK"},
+            )
+            try:
+                messaging.send_each_for_multicast(message)
+            except Exception as e:
+                print(f"Error sending health check to user {user.id}: {e}")
+

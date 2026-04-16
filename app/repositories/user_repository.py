@@ -47,6 +47,10 @@ class UserRepository:
         if not doc.exists:
             return None
         return self._doc_to_user(doc)
+    
+    async def get_all(self) -> list[User]:
+        docs = await self.col.get()
+        return [self._doc_to_user(doc) for doc in docs]
 
     async def get_by_email(self, email: str) -> User | None:
         docs = await self.col.where("email", "==", email).limit(1).get()

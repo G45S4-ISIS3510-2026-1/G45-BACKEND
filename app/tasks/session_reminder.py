@@ -95,3 +95,5 @@ async def check_upcoming_sessions():
 
     if notify_tasks:
         await asyncio.gather(*notify_tasks, return_exceptions=True)
+        
+    
