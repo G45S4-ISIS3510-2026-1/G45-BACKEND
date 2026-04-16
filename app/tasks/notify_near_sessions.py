@@ -41,7 +41,7 @@ async def notify_near_sessions():
             
         time_till_session= session_time - now if session_time else None
         
-        if session.status == "PENDIENTE" and time_till_session <= timedelta(hours=1):
+        if session.status == SessionStatus.PENDIENTE and time_till_session <= timedelta(hours=1):
             tutor= await user_repo.get_by_id(session.tutor.id)
             
             student= await user_repo.get_by_id(session.student.id)
