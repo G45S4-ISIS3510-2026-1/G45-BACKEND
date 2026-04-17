@@ -53,7 +53,7 @@ class ReviewService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"El usuario '{review.author_id}' ya dejó una reseña al tutor '{review.tutor_id}'."
             )
-        tutor.tutorRating=tutor.tutorRating+review.rating/(tutor.receivedRatings+1)
+        tutor.tutorRating=(tutor.tutorRating*tutor.receivedRatings+review.rating)/(tutor.receivedRatings+1)
         tutor.receivedRatings=tutor.receivedRatings+1
         await self.user_repo.update(tutor.id, tutor)
         newReview=await self.review_repo.create(review)
