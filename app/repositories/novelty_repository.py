@@ -3,13 +3,18 @@
 from datetime import datetime
 
 from google.cloud.firestore_v1 import AsyncClient
-from app.core.currentWeekManager import getColombiaTimezone
+from app.core.currentWeekManager import getColombiaTimezone, refactorTimezone
 from app.models.novelty import Novelty
 
 class NoveltiesRepository:
     def __init__(self, db: AsyncClient):
         self.db = db
         self.collection = self.db.collection("novelties")
+    
+    def _doc_to_nov(self, doc) -> Novelty:
+        novelty=Novelty(id=doc.id, **doc.to_dict())
+        novelty.created_at=refactorTimezone(novelty.created_at)
+        return novelty
 
     async def create_novelty(self, novelty: Novelty) -> str:
         """Crea una nueva novedad en Firestore."""
@@ -18,6 +23,10 @@ class NoveltiesRepository:
         # Convertimos a dict usando alias para Firestore
         await doc_ref.set(novelty.model_dump(by_alias=True, exclude={"id"}))
         return doc_ref.id
+    
+    async def get_all(self) -> list[Novelty]:
+        docs = await self.collection.where("isRead", "==", False).get()
+        return [self._doc_to_nov(doc) for doc in docs]
 
     async def get_user_novelties(self, user_id: str, only_unread: bool = False) -> list[Novelty]:
         """Obtiene las novedades de un usuario específico."""
