@@ -26,7 +26,6 @@ async def lifespan(app: FastAPI):
     init_firebase(settings.FIREBASE_CREDENTIALS_PATH)
     setup_scheduler([
         (check_upcoming_sessions, {"hour": 12, "minute": 0, "timezone": "America/Bogota"}),
-        (health_check, {"minute": "*/5", "timezone": "America/Bogota"}),
         (mark_non_confirmed_sessions, {"hour": "*", "timezone": "America/Bogota"}),
         (notify_near_sessions, {"hour": "*", "timezone": "America/Bogota"})
     ])
