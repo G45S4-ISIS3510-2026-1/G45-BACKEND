@@ -40,7 +40,7 @@ async def mark_non_confirmed_sessions():
             session_time = session_time.replace(tzinfo=getColombiaTimezone())
         
         if session.status == SessionStatus.PENDIENTE and session_time and session_time+timedelta(hours=1) < now:
-            session_repo.update_status(session.id, SessionStatus.VENCIDA)
+            await session_repo.update_status(session.id, SessionStatus.VENCIDA)
             
             novelty_tutor.user_id=session.tutor.id
             novelty_tutor.title="Sesión vencida"
