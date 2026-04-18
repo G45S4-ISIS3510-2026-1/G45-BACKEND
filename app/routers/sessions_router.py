@@ -73,10 +73,11 @@ async def get_previous_sessions_for_user(
 async def cancel_session(session_id: str, participant_id: str, svc: SessionService = SS):
     return await svc.cancel(session_id, participant_id)
 
-@router.patch("/{session_id}/confirm", response_model=Session)
+@router.patch("/{session_id}/{participant_id}/confirm", response_model=Session)
 async def confirm_session(
     session_id:  str,
+    participant_id: str,
     verif_code:  str = Query(..., description="Código alfanumérico de verificación de la sesión"),
     svc:         SessionService = SS,
 ):
-    return await svc.confirm(session_id, verif_code)
+    return await svc.confirm(session_id, participant_id, verif_code)
