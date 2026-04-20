@@ -96,8 +96,7 @@ class SessionService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=(
                     f"La hora {scheduled_at.strftime('%H:%M')} no está en la disponibilidad "
-                    f"del tutor para el {day_field.capitalize()}. "
-                    f"Horas disponibles: {slots_str}."
+                    f"del tutor para el {day_field.capitalize()}. Regresa e intentalo mas tarde."
                 )
             )
 
