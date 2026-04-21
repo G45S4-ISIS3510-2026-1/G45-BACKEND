@@ -57,9 +57,10 @@ async def search_tutors(
             id=tutor.id,
             name=tutor.name,
             major=tutor.major,
-            rating=tutor.tutorRating,
+            tutor_rating=tutor.tutorRating,
+            received_ratings=tutor.receivedRatings,
             profile_image_url=tutor.profile_image_url,
-            session_price=tutor.session_price,    
+            session_price=tutor.session_price,
         ))
     return summaries
 

@@ -96,7 +96,7 @@ class UserService:
         - skill_ids: al menos uno de los IDs debe estar en tutoringSkills
         - major:     carrera exacta del tutor
         """
-        # BQ5: log which filters were used
+        # BQ5: registrar filtros aplicados
         active_filters = {k: v for k, v in {
             "name": name, "skill_ids": skill_ids, "major": str(major) if major else None,
             "min_rating": min_rating, "min_price": min_price, "max_price": max_price,
@@ -105,14 +105,15 @@ class UserService:
             from app.core.config import settings
             try:
                 async with httpx.AsyncClient(timeout=2.0) as client:
-                    await client.post(f"{settings.ANALYTICS_URL}/analytics/event", json={
-                        "user_id": "server",
-                        "event_type": "filter_applied",
-                        "metadata": {"filters": active_filters},
-                        "timestamp": datetime.now().isoformat(),
-                    })
+                    for filter_name in active_filters:
+                        await client.post(f"{settings.ANALYTICS_URL}/analytics/event", json={
+                            "user_id": "server",
+                            "event_type": "filter_applied",
+                            "metadata": {"filter_name": filter_name},
+                            "timestamp": datetime.now().isoformat(),
+                        })
             except Exception:
-                pass  # analytics must never block search
+                pass  # analytics no debe bloquear la búsqueda
             
         if skill_ids:
             tutors = await self.repo.get_tutors_by_skills(skill_ids)
@@ -245,9 +246,22 @@ class UserService:
                 )
         return await self.repo.update_fav_tutors(user_id, fav_tutor_ids)
     
-    async def get_top_tutors(self, limit: int = 10) -> list[User]:
+    async def get_top_tutors(self, limit: int = 10):
+        from app.dtos.tutor_summary import TutorSummary
         tutors = await self.repo.get_all_tutors()
-        return sorted(tutors, key=lambda t: t.tutorRating, reverse=True)[:limit]
+        sorted_tutors = sorted(tutors, key=lambda t: t.tutorRating, reverse=True)[:limit]
+        return [
+            TutorSummary(
+                id=t.id,
+                name=t.name,
+                major=t.major,
+                tutor_rating=t.tutorRating,
+                received_ratings=t.receivedRatings,
+                profile_image_url=t.profile_image_url,
+                session_price=t.session_price,
+            )
+            for t in sorted_tutors
+        ]
 
     # -------- Payment Methods
 
@@ -418,9 +432,9 @@ class UserService:
             tutor.model_copy(update={"session_price": new_price})
         )
         
-        # BQ2: persist price change so 24h queries are possible
+        # BQ2: Persistir cambio de precio para consultas de 24h
         old_price = tutor.session_price
-        db = self.repo.col._client  # reuse the Firestore client
+        db = self.repo.col._client  # reutilizar el cliente de Firestore
         await db.collection("users").document(user_id)\
             .collection("price_history").add({
                 "old_price": old_price,

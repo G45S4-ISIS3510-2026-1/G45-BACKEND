@@ -180,6 +180,20 @@ class SessionService:
         )
         
         await self.novelty_repo.create_novelty(novelty)
+
+        try:
+            import httpx
+            from app.core.config import settings
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                await client.post(f"{settings.ANALYTICS_URL}/analytics/event", json={
+                    "user_id": session.student.id,
+                    "event_type": "session_scheduled",
+                    "metadata": {"tutor_id": session.tutor.id, "student_id": session.student.id},
+                    "timestamp": datetime.now().isoformat(),
+                })
+        except Exception:
+            pass
+
         return created_session
 
     # ------------------------------------------------------------------ READ
