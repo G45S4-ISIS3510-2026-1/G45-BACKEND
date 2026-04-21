@@ -61,6 +61,10 @@ class UserRepository:
     async def get_all_tutors(self) -> list[User]:
         docs = await self.col.where("isTutoring", "==", True).get()
         return [self._doc_to_user(doc) for doc in docs]
+    
+    async def get_top_n_tutors_by_rating(self, n: int) -> list[User]:
+        docs = await self.col.where("isTutoring", "==", True).order_by("tutorRating", direction="DESCENDING").limit(n).get()
+        return [self._doc_to_user(doc) for doc in docs]
 
     async def get_tutors_by_skills(self, skill_ids: list[str]) -> list[User]:
         """

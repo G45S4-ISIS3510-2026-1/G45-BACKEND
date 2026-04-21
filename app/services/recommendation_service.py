@@ -48,6 +48,9 @@ class RecommenderService:
         """
         # Primero verificamos si necesitamos actualizar datos
         await self._refresh_data_if_needed()
+        if not searched_tutor_ids or len(searched_tutor_ids) == 0:
+            return await self.userRepo.get_top_n_tutors_by_rating(n_top)
+        
         
         if RecommenderService._df_cache is None or RecommenderService._df_cache.empty:
             return []

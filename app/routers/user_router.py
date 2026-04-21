@@ -65,6 +65,11 @@ async def search_tutors(
         ))
     return summaries
 
+#para FLUTTER
+@router.get("/by-email/{email}", response_model=User)
+async def get_user_by_email(email: str, svc: UserService = US):
+    return await svc.get_user_by_email(email)
+
 
 # ------------------------------------------------------------------ UPDATE GENERAL
 

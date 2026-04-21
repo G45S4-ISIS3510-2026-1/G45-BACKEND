@@ -41,7 +41,7 @@ async def notify_near_sessions():
             
         time_till_session= session_time - now if session_time else None
         
-        if session.status == SessionStatus.PENDIENTE and time_till_session <= timedelta(hours=1):
+        if session.status == SessionStatus.PENDIENTE and timedelta(hours=0) < time_till_session <= timedelta(hours=1):
             tutor= await user_repo.get_by_id(session.tutor.id)
             
             student= await user_repo.get_by_id(session.student.id)
@@ -61,22 +61,22 @@ async def notify_near_sessions():
             await novelty_repo.create_novelty(novelty_user)
             
             
-            if tutor and tutor.fcm_token:
-                message = messaging.Message(
+            if tutor and tutor.fcm_tokens:
+                message = messaging.MulticastMessage(
                     notification=messaging.Notification(
                         title="Recordatorio de sesión próxima",
                         body=f"Tienes una sesión programada en menos de una hora a las {session_time.strftime('%H:%M')}. Preparate y no olvides confirmar la asistencia con {student.name}."
                     ),
-                    token=tutor.fcm_token
+                    tokens=tutor.fcm_tokens
                 )
-                messaging.send(message)
-            if student and student.fcm_token:
-                message = messaging.Message(
+                messaging.send_each_for_multicast(message)
+            if student and student.fcm_tokens:
+                message = messaging.MulticastMessage(
                     notification=messaging.Notification(
                         title="Recordatorio de sesión próxima",
                         body=f"Tienes una sesión programada en menos de una hora a las {session_time.strftime('%H:%M')}. Preparate y no olvides confirmar la asistencia con {tutor.name}."
                     ),
-                    token=student.fcm_token
+                    tokens=student.fcm_tokens
                 )
-                messaging.send(message)
+                messaging.send_each_for_multicast(message)
         

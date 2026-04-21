@@ -122,6 +122,18 @@ class UserService:
                 tutors = tutors[:limit]
 
         return tutors
+    
+    #Para FLUTTER
+    async def get_user_by_email(self, email: str) -> User:
+        user = await self.repo.get_by_email(email)
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Usuario con correo '{email}' no encontrado."
+            )
+
+        return user
 
     # ------------------------------------------------------------------ UPDATE GENERAL
     async def update(self, user_id: str, user: User) -> User:
