@@ -160,6 +160,20 @@ class UserService:
         return await self.repo.update(user_id, user)
 
     # ------------------------------------------------------------------ UPDATE ESPECÍFICOS
+    
+    async def update_major(self, user_id: str, major: str) -> User:
+        user = await self.repo.get_by_id(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Usuario '{user_id}' no encontrado."
+            )
+        if major not in UniandesMajor.__members__:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"'{major}' no es una carrera válida."
+            )
+        return await self.repo.update_major(user_id, major)
 
     async def set_tutoring(self, user_id: str, is_tutoring: bool) -> User:
         user = await self.repo.get_by_id(user_id)
