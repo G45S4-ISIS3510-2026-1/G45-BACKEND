@@ -1,6 +1,7 @@
 # app/services/user_service.py
 
 from datetime import date, datetime
+import unicodedata
 
 from fastapi import HTTPException, status
 from app.core.currentWeekManager import getColombiaWeekDate
@@ -33,6 +34,26 @@ class UserService:
             if session.scheduled_at.date() == day and session.scheduled_at.hour == slotHour:
                 return False
         return True
+
+    def _normalize_text(self, value: str) -> str:
+        normalized = unicodedata.normalize("NFKD", value)
+        without_diacritics = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+        return " ".join(without_diacritics.casefold().split())
+
+    def _resolve_major(self, major: str) -> UniandesMajor | None:
+        major_clean = major.strip()
+
+        # Accept enum member names (e.g. INGENIERIA_SISTEMAS)
+        if major_clean in UniandesMajor.__members__:
+            return UniandesMajor[major_clean]
+
+        # Accept human-readable enum values (e.g. Ingeniería de Sistemas y Computación)
+        target = self._normalize_text(major_clean)
+        for enum_major in UniandesMajor:
+            if self._normalize_text(enum_major.value) == target:
+                return enum_major
+
+        return None
         
     def getFreeSlots(self, availability: Availability, sessions: list[Session]) -> Availability:
         free_slots = Availability()
@@ -168,12 +189,16 @@ class UserService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Usuario '{user_id}' no encontrado."
             )
-        if major not in UniandesMajor.__members__:
+
+        resolved_major = self._resolve_major(major)
+        if not resolved_major:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"'{major}' no es una carrera válida."
             )
-        return await self.repo.update_major(user_id, major)
+
+        # Persist canonical value to keep DB data consistent with the User model.
+        return await self.repo.update_major(user_id, resolved_major.value)
 
     async def set_tutoring(self, user_id: str, is_tutoring: bool) -> User:
         user = await self.repo.get_by_id(user_id)
