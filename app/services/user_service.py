@@ -1,21 +1,22 @@
 # app/services/user_service.py
 
+from datetime import date, datetime, timezone
 from datetime import date, datetime
 import unicodedata
 
-from fastapi import HTTPException, status
+import httpx
 from app.core.currentWeekManager import getColombiaWeekDate
+from app.models.enums import NoveltyType, UniandesMajor
+from app.models.notification import NotificationPayload
 from app.models.novelty import Novelty
 from app.models.sessions import Session
-from app.models.user import User, Availability, PaymentMethod
-from app.models.enums import NoveltyType, UniandesMajor
+from app.models.user import Availability, PaymentMethod, User
 from app.repositories.novelty_repository import NoveltiesRepository
 from app.repositories.sessions_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
-
+from fastapi import HTTPException, status
 from firebase_admin import messaging
 from firebase_admin.exceptions import FirebaseError
-from app.models.notification import NotificationPayload
 
 
 class UserService:
@@ -117,6 +118,25 @@ class UserService:
         - skill_ids: al menos uno de los IDs debe estar en tutoringSkills
         - major:     carrera exacta del tutor
         """
+        # BQ5: registrar filtros aplicados
+        active_filters = {k: v for k, v in {
+            "name": name, "skill_ids": skill_ids, "major": str(major) if major else None,
+            "min_rating": min_rating, "min_price": min_price, "max_price": max_price,
+        }.items() if v is not None}
+        if active_filters:
+            from app.core.config import settings
+            try:
+                async with httpx.AsyncClient(timeout=2.0) as client:
+                    for filter_name in active_filters:
+                        await client.post(f"{settings.ANALYTICS_URL}/analytics/event", json={
+                            "user_id": "server",
+                            "event_type": "filter_applied",
+                            "metadata": {"filter_name": filter_name},
+                            "timestamp": datetime.now().isoformat(),
+                        })
+            except Exception:
+                pass  # analytics no debe bloquear la búsqueda
+            
         if skill_ids:
             tutors = await self.repo.get_tutors_by_skills(skill_ids)
         else:
@@ -265,6 +285,23 @@ class UserService:
                     detail=f"El usuario '{tutor_id}' no es tutor."
                 )
         return await self.repo.update_fav_tutors(user_id, fav_tutor_ids)
+    
+    async def get_top_tutors(self, limit: int = 10):
+        from app.dtos.tutor_summary import TutorSummary
+        tutors = await self.repo.get_all_tutors()
+        sorted_tutors = sorted(tutors, key=lambda t: t.tutorRating, reverse=True)[:limit]
+        return [
+            TutorSummary(
+                id=t.id,
+                name=t.name,
+                major=t.major,
+                tutor_rating=t.tutorRating,
+                received_ratings=t.receivedRatings,
+                profile_image_url=t.profile_image_url,
+                session_price=t.session_price,
+            )
+            for t in sorted_tutors
+        ]
 
     # -------- Payment Methods
 
@@ -434,6 +471,16 @@ class UserService:
             user_id,
             tutor.model_copy(update={"session_price": new_price})
         )
+        
+        # BQ2: Persistir cambio de precio para consultas de 24h
+        old_price = tutor.session_price
+        db = self.repo.col._client  # reutilizar el cliente de Firestore
+        await db.collection("users").document(user_id)\
+            .collection("price_history").add({
+                "old_price": old_price,
+                "new_price": new_price,
+                "changed_at": datetime.now(timezone.utc).isoformat(),
+            })
 
         # Notificar a todos los usuarios que tienen a este tutor como favorito
         fans = await self.repo.get_users_with_fav_tutor(user_id)
@@ -485,4 +532,4 @@ class UserService:
 
     #------------------------------------------------------------------ Tutores recomendados
     # async def get_recommended_tutors(self, user_id: str, limit: int = 5) -> list[User]:
-    #     """Retorna una lista de tutores recomendados para el usuario, ordenados por relevancia."""
+    #     """Retorna una lista de tutores recomendados para el usuario, ordenados por relevancia."""    #     """Retorna una lista de tutores recomendados para el usuario, ordenados por relevancia."""

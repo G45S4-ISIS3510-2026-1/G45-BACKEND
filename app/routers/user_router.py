@@ -1,12 +1,12 @@
 # app/routers/user_router.py
 
-from fastapi import APIRouter, Query
-from app.models.user import User, Availability, PaymentMethod
-from app.models.notification import NotificationPayload
-from app.models.enums import UniandesMajor
-from app.services.user_service import UserService
-from app.services.reviews_service import ReviewService
 from app.dtos.tutor_summary import TutorSummary
+from app.models.enums import UniandesMajor
+from app.models.notification import NotificationPayload
+from app.models.user import Availability, PaymentMethod, User
+from app.services.reviews_service import ReviewService
+from app.services.user_service import UserService
+from fastapi import APIRouter, Query
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -15,11 +15,9 @@ router = APIRouter(prefix="/users", tags=["Users"])
 # Se asume inyección de dependencias configurada en main.py
 # Ejemplo de uso: get_user_service() -> UserService
 
-from app.dependencies import (
-    get_user_service
-)
-
+from app.dependencies import get_user_service
 from fastapi import Depends
+
 US = Depends(get_user_service)
 
 
@@ -59,9 +57,10 @@ async def search_tutors(
             id=tutor.id,
             name=tutor.name,
             major=tutor.major,
-            rating=tutor.tutorRating,
+            tutor_rating=tutor.tutorRating,
+            received_ratings=tutor.receivedRatings,
             profile_image_url=tutor.profile_image_url,
-            session_price=tutor.session_price,    
+            session_price=tutor.session_price,
         ))
     return summaries
 
@@ -70,6 +69,9 @@ async def search_tutors(
 async def get_user_by_email(email: str, svc: UserService = US):
     return await svc.get_user_by_email(email)
 
+@router.get("/tutors/top", response_model=list[TutorSummary])
+async def get_top_tutors(limit: int = 10, svc: UserService = US):
+    return await svc.get_top_tutors(limit)
 #para Kotlin
 @router.patch("/{user_id}/major", response_model=User)
 async def update_major(user_id: str, major: str = Query(..., description="Nueva carrera del usuario"), svc: UserService = US):
