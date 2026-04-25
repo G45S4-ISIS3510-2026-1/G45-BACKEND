@@ -267,6 +267,7 @@ class UserService:
                 detail=f"Usuario '{user_id}' no encontrado."
             )
         # Verificar que todos los IDs referenciados existen y son tutores
+        valid_fav_tutor_ids = list()
         for tutor_id in fav_tutor_ids:
             tutor = await self.repo.get_by_id(tutor_id)
             if not tutor:
@@ -274,13 +275,11 @@ class UserService:
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"El tutor '{tutor_id}' no existe."
                 )
-            if not tutor.is_tutoring:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"El usuario '{tutor_id}' no es tutor."
-                )
-        return await self.repo.update_fav_tutors(user_id, fav_tutor_ids)
-    
+            if tutor.is_tutoring:
+                valid_fav_tutor_ids.append(tutor_id)
+
+        return await self.repo.update_fav_tutors(user_id, valid_fav_tutor_ids)
+
     async def get_top_tutors(self, limit: int = 10):
         from app.dtos.tutor_summary import TutorSummary
         tutors = await self.repo.get_all_tutors()
