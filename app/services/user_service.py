@@ -205,11 +205,6 @@ class UserService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Usuario '{user_id}' no encontrado."
             )
-        if not user.is_tutoring:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Solo los tutores pueden definir skills de tutoría."
-            )
         return await self.repo.update_tutoring_skills(user_id, skill_ids)
 
     async def update_interested_skills(self, user_id: str, skill_ids: list[str]) -> User:
