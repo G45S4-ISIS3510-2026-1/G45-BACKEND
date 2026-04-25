@@ -150,6 +150,14 @@ class UserRepository:
         await doc_ref.update({"favTutors": fav_tutor_ids})
         return self._doc_to_user(await doc_ref.get())
     
+    async def update_major(self, user_id: str, major: str) -> User | None:
+        doc_ref = self.col.document(user_id)
+        doc = await doc_ref.get()
+        if not doc.exists:
+            return None
+        await doc_ref.update({"major": major})
+        return self._doc_to_user(await doc_ref.get())
+    
     async def update_session_price(self, user_id: str, session_price: int) -> User | None:
         doc_ref = self.col.document(user_id)
         doc = await doc_ref.get()

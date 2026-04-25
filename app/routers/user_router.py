@@ -72,6 +72,10 @@ async def get_user_by_email(email: str, svc: UserService = US):
 @router.get("/tutors/top", response_model=list[TutorSummary])
 async def get_top_tutors(limit: int = 10, svc: UserService = US):
     return await svc.get_top_tutors(limit)
+#para Kotlin
+@router.patch("/{user_id}/major", response_model=User)
+async def update_major(user_id: str, major: str = Query(..., description="Nueva carrera del usuario"), svc: UserService = US):
+    return await svc.update_major(user_id, major)
 
 # ------------------------------------------------------------------ UPDATE GENERAL
 
