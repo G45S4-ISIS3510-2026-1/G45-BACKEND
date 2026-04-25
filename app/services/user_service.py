@@ -439,21 +439,13 @@ class UserService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Usuario '{user_id}' no encontrado."
             )
-        if not tutor.is_tutoring:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Solo los tutores pueden tener un precio de sesión."
-            )
+
         if new_price < 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="El precio no puede ser negativo."
             )
-        if new_price == tutor.session_price:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"El precio ya es {new_price} COP."
-            )
+       
 
         # Actualizar el precio
         updated_tutor = await self.repo.update(
