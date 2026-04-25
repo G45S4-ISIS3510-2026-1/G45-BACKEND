@@ -1,9 +1,8 @@
 # app/repositories/user_repository.py
 
-from google.cloud.firestore_v1 import AsyncClient, ArrayUnion, ArrayRemove
 from app.core.currentWeekManager import getColombiaTimezone, refactorTimezone
-from app.models.user import User, Availability, PaymentMethod
-
+from app.models.user import Availability, PaymentMethod, User
+from google.cloud.firestore_v1 import ArrayRemove, ArrayUnion, AsyncClient
 
 COLLECTION = "users"
 
@@ -228,4 +227,10 @@ class UserRepository:
             .get()
         )
         return [self._doc_to_user(doc) for doc in docs]
+    
+    
+    async def increment_field(self, user_id: str, field: str, delta: int) -> None:
+        from google.cloud.firestore import AsyncIncrement
+        doc_ref = self.col.document(user_id)
+        await doc_ref.update({field: AsyncIncrement(delta)})
 

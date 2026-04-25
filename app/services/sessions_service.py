@@ -1,19 +1,19 @@
 # app/services/session_service.py
 
-from datetime import datetime, timezone, timedelta
-from fastapi import HTTPException, status
+from datetime import datetime, timedelta, timezone
+
 from app.core.currentWeekManager import getColombiaTimezone
+from app.models.enums import NoveltyType, SessionStatus
 from app.models.notification import NotificationPayload
 from app.models.novelty import Novelty
 from app.models.sessions import ParticipantSummary, Session, SkillSummary
-from app.models.enums import NoveltyType, SessionStatus
 from app.repositories.novelty_repository import NoveltiesRepository
 from app.repositories.sessions_repository import SessionRepository
+from app.repositories.skills_repository import SkillRepository
 from app.repositories.user_repository import UserRepository
 from app.services.skills_service import SkillService
-from app.repositories.skills_repository import SkillRepository
 from app.services.user_service import UserService
-
+from fastapi import HTTPException, status
 
 # Mapa de weekday() de Python (0=lunes) al campo de Availability
 WEEKDAY_TO_FIELD = {
@@ -180,6 +180,20 @@ class SessionService:
         )
         
         await self.novelty_repo.create_novelty(novelty)
+
+        try:
+            import httpx
+            from app.core.config import settings
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                await client.post(f"{settings.ANALYTICS_URL}/analytics/event", json={
+                    "user_id": session.student.id,
+                    "event_type": "session_scheduled",
+                    "metadata": {"tutor_id": session.tutor.id, "student_id": session.student.id},
+                    "timestamp": datetime.now().isoformat(),
+                })
+        except Exception:
+            pass
+
         return created_session
 
     # ------------------------------------------------------------------ READ
@@ -304,4 +318,8 @@ class SessionService:
             entity_id=session.id
         ))
         
+        # BQ6: track completed sessions for leaderboard
+        await self.user_repo.increment_field(session.tutor.id, "sessionsCompleted", 1)
+        await self.user_repo.increment_field(session.student.id, "sessionsCompleted", 1)
+                
         return await self.session_repo.update_status(session_id, SessionStatus.CONCLUIDA )

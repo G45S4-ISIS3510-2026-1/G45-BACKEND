@@ -4,14 +4,14 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from firebase_admin import messaging
 
 from app.core.currentWeekManager import getColombiaTimezone
-from app.core.currentWeekManager import getColombiaTimezone
 from app.core.firebase import get_firestore_client
 from app.models.enums import NoveltyType, SessionStatus
 from app.models.novelty import Novelty
 from app.repositories.novelty_repository import NoveltiesRepository
 from app.repositories.sessions_repository import SessionRepository
-from app.repositories.sessions_repository import SessionRepository
 from app.repositories.user_repository import UserRepository
+
+
 async def mark_non_confirmed_sessions():
     db           = get_firestore_client()
     novelty_repo= NoveltiesRepository(db)

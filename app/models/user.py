@@ -1,14 +1,16 @@
 # app/models/user.py
 
 from __future__ import annotations
+
 from datetime import datetime
 from typing import Annotated
-from pydantic import BaseModel, Field, EmailStr, field_validator
-
-# app/models/user.py  — sección de imports
 
 from app.models.enums import UniandesMajor
 from app.models.skills import Skill
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+# app/models/user.py  — sección de imports
+
 
 # ---------------------------------------------------------------------------
 # Sub-modelos
@@ -75,6 +77,12 @@ class User(BaseModel):
         default=0,
         ge=0,
         alias="receivedRatings"
+    )
+    
+    sessions_completed: int = Field(
+        default=0,
+        ge=0,
+        alias="sessionsCompleted"
     )
 
     payment_methods: Annotated[
