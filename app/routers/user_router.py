@@ -57,8 +57,10 @@ async def search_tutors(
             id=tutor.id,
             name=tutor.name,
             major=tutor.major,
+            tutoring_skills=tutor.tutoring_skills,
             tutor_rating=tutor.tutorRating,
             received_ratings=tutor.receivedRatings,
+            sessions_completed=tutor.sessions_completed,
             profile_image_url=tutor.profile_image_url,
             session_price=tutor.session_price,
         ))
@@ -173,4 +175,3 @@ async def send_notification(user_id: str, payload: NotificationPayload, svc: Use
 @router.delete("/{user_id}", status_code=204)
 async def delete(user_id: str, svc: UserService = US):
     await svc.delete(user_id)
-

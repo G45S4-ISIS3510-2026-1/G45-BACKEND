@@ -295,8 +295,10 @@ class UserService:
                 id=t.id,
                 name=t.name,
                 major=t.major,
+                tutoring_skills=t.tutoring_skills,
                 tutor_rating=t.tutorRating,
                 received_ratings=t.receivedRatings,
+                sessions_completed=t.sessions_completed,
                 profile_image_url=t.profile_image_url,
                 session_price=t.session_price,
             )
