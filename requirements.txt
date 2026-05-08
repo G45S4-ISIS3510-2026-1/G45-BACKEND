@@ -10,7 +10,9 @@ pydantic[email]==2.9.2
 pydantic-settings==2.5.2
 
 # Firebase / Firestore
-firebase-admin==6.5.0
+# Add this line to force the firestore version
+google-cloud-firestore>=2.19.0
+firebase-admin==6.6.0
 
 # Scheduler
 APScheduler==3.10.4
