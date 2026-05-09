@@ -172,7 +172,7 @@ class SessionService:
             type=NoveltyType.INCOMING_SESSION,
             entity_id=session.id
         )
-        self.user_service.send_push_notification(
+        await self.user_service.send_push_notification(
             user_id=session.tutor.id,
             payload=NotificationPayload(
                 title="Nueva sesión solicitada",
@@ -267,7 +267,7 @@ class SessionService:
             type=NoveltyType.SESION,
             entity_id=session.id
         ))
-        self.user_service.send_push_notification(
+        await self.user_service.send_push_notification(
             user_id=session.tutor.id if participant_id == session.student.id else session.student.id,
             payload=NotificationPayload(
                 title="Sesión cancelada",
@@ -309,7 +309,7 @@ class SessionService:
             userId=session.student.id
             mensaje = f"El tutor {session.tutor.name} ha confirmado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}."
         update=await self.session_repo.update_status(session_id, SessionStatus.CONCLUIDA)
-        self.user_service.send_push_notification(
+        await self.user_service.send_push_notification(
             user_id=userId,
             payload=NotificationPayload(
                 title="Sesión confirmada",
