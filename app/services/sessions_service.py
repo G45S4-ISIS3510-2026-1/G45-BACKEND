@@ -261,14 +261,14 @@ class SessionService:
         update=await self.session_repo.update_status(session_id, SessionStatus.CANCELADA)
         rol="estudiante" if participant_id == session.student.id else "tutor"
         await self.novelty_repo.create_novelty(Novelty(
-            user_id=session.tutor.id,
+            user_id=session.tutor.id if participant_id == session.student.id else session.student.id,
             title="Sesión cancelada",
             description=f"El {rol} {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
             type=NoveltyType.SESION,
             entity_id=session.id
         ))
         self.user_service.send_push_notification(
-            user_id=session.tutor.id,
+            user_id=session.tutor.id if participant_id == session.student.id else session.student.id,
             payload=NotificationPayload(
                 title="Sesión cancelada",
                 body=f"El {rol} {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
