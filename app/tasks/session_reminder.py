@@ -25,8 +25,8 @@ async def _notify_user(user_repo: UserRepository, novelty_repo: NoveltiesReposit
         title="Recordatorio de tutoría 📚",
         body=f"Hoy tienes una sesión como {label} a las {scheduled_str}. Revisa tus novedades para más detalles.",
         data={
-            "type":      "SESSION_REMINDER",
-            "sessionId": session.id,
+            "type":      NoveltyType.SESION,
+            "entity_id": session.id,
             "role":      label,
         }
     )

@@ -470,8 +470,8 @@ class UserService:
             title=f"{tutor.name} actualizó su precio",
             body=f"Las sesiones con {tutor.name}, uno de tus tutores favoritos ahora cuestan {price_label}.",
             data={
-                "type":    "TUTOR_PRICE_UPDATED",
-                "tutorId": user_id,
+                "type":    NoveltyType.PRECIO_CAMBIADO,
+                "entity_id": user_id,
                 "price":   str(new_price),
             }
         )

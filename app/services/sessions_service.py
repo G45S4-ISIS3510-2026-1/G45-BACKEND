@@ -157,13 +157,7 @@ class SessionService:
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"El skill '{session.skill.id}' no existe."
                 )
-        self.user_service.send_push_notification(
-            user_id=session.tutor.id,
-            payload=NotificationPayload(
-                title="Nueva sesión solicitada",
-                body=f"El estudiante {student.name} ha solicitado una sesión para el {scheduled.strftime('%Y-%m-%d %H:%M')}.",
-            )
-        )
+        
         
         session.student=ParticipantSummary(id=student.id, name=student.name, profileImageUrl=student.profile_image_url)
         session.tutor=ParticipantSummary(id=tutor.id, name=tutor.name, profileImageUrl=tutor.profile_image_url)
@@ -177,6 +171,14 @@ class SessionService:
             description=f"El estudiante {student.name} ha solicitado una sesión para el {scheduled.strftime('%Y-%m-%d %H:%M')}.",
             type=NoveltyType.INCOMING_SESSION,
             entity_id=session.id
+        )
+        self.user_service.send_push_notification(
+            user_id=session.tutor.id,
+            payload=NotificationPayload(
+                title="Nueva sesión solicitada",
+                body=f"El estudiante {student.name} ha solicitado una sesión para el {scheduled.strftime('%Y-%m-%d %H:%M')}.",
+                data={"type": NoveltyType.INCOMING_SESSION, "entityId": session.id}
+            )
         )
         
         await self.novelty_repo.create_novelty(novelty)
@@ -256,13 +258,7 @@ class SessionService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Solo el estudiante o el tutor de la sesión pueden cancelarla."
             )
-        self.user_service.send_push_notification(
-            user_id=session.tutor.id,
-            payload=NotificationPayload(
-                title="Sesión cancelada",
-                body=f"El estudiante {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
-            )
-        )
+        update=await self.session_repo.update_status(session_id, SessionStatus.CANCELADA)
         await self.novelty_repo.create_novelty(Novelty(
             user_id=session.tutor.id,
             title="Sesión cancelada",
@@ -270,7 +266,15 @@ class SessionService:
             type=NoveltyType.SESION,
             entity_id=session.id
         ))
-        return await self.session_repo.update_status(session_id, SessionStatus.CANCELADA)
+        self.user_service.send_push_notification(
+            user_id=session.tutor.id,
+            payload=NotificationPayload(
+                title="Sesión cancelada",
+                body=f"El estudiante {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
+                data={"type": NoveltyType.SESION, "entityId": session.id}
+            )
+        )
+        return update
 
     async def confirm(self, session_id: str, participant_id: str, verif_code: str) -> Session:
         session = await self.session_repo.get_by_id(session_id)
@@ -303,11 +307,13 @@ class SessionService:
         else:
             userId=session.student.id
             mensaje = f"El tutor {session.tutor.name} ha confirmado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}."
+        update=await self.session_repo.update_status(session_id, SessionStatus.CONCLUIDA)
         self.user_service.send_push_notification(
             user_id=userId,
             payload=NotificationPayload(
                 title="Sesión confirmada",
                 body=mensaje,
+                data={"type": NoveltyType.SESION, "entityId": session.id}
             )
         )
         await self.novelty_repo.create_novelty(Novelty(
@@ -322,4 +328,4 @@ class SessionService:
         await self.user_repo.increment_field(session.tutor.id, "sessionsCompleted", 1)
         await self.user_repo.increment_field(session.student.id, "sessionsCompleted", 1)
                 
-        return await self.session_repo.update_status(session_id, SessionStatus.CONCLUIDA )
+        return update

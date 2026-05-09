@@ -67,7 +67,8 @@ async def notify_near_sessions():
                         title="Recordatorio de sesión próxima",
                         body=f"Tienes una sesión programada en menos de una hora a las {session_time.strftime('%H:%M')}. Preparate y no olvides confirmar la asistencia con {student.name}."
                     ),
-                    tokens=tutor.fcm_tokens
+                    tokens=tutor.fcm_tokens,
+                    data={"type": NoveltyType.SESION, "entity_id": session.id}
                 )
                 messaging.send_each_for_multicast(message)
             if student and student.fcm_tokens:
@@ -76,7 +77,8 @@ async def notify_near_sessions():
                         title="Recordatorio de sesión próxima",
                         body=f"Tienes una sesión programada en menos de una hora a las {session_time.strftime('%H:%M')}. Preparate y no olvides confirmar la asistencia con {tutor.name}."
                     ),
-                    tokens=student.fcm_tokens
+                    tokens=student.fcm_tokens,
+                    data={"type": NoveltyType.SESION, "entity_id": session.id}
                 )
                 messaging.send_each_for_multicast(message)
         
