@@ -259,10 +259,11 @@ class SessionService:
                 detail="Solo el estudiante o el tutor de la sesión pueden cancelarla."
             )
         update=await self.session_repo.update_status(session_id, SessionStatus.CANCELADA)
+        rol="estudiante" if participant_id == session.student.id else "tutor"
         await self.novelty_repo.create_novelty(Novelty(
             user_id=session.tutor.id,
             title="Sesión cancelada",
-            description=f"El estudiante {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
+            description=f"El {rol} {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
             type=NoveltyType.SESION,
             entity_id=session.id
         ))
@@ -270,7 +271,7 @@ class SessionService:
             user_id=session.tutor.id,
             payload=NotificationPayload(
                 title="Sesión cancelada",
-                body=f"El estudiante {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
+                body=f"El {rol} {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
                 data={"type": NoveltyType.SESION, "entityId": session.id}
             )
         )
