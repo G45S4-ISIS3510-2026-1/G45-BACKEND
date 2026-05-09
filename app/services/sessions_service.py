@@ -177,7 +177,7 @@ class SessionService:
             payload=NotificationPayload(
                 title="Nueva sesión solicitada",
                 body=f"El estudiante {student.name} ha solicitado una sesión para el {scheduled.strftime('%Y-%m-%d %H:%M')}.",
-                data={"type": NoveltyType.INCOMING_SESSION, "entityId": session.id}
+                data={"type": NoveltyType.INCOMING_SESSION, "entity_id": session.id}
             )
         )
         
@@ -272,7 +272,7 @@ class SessionService:
             payload=NotificationPayload(
                 title="Sesión cancelada",
                 body=f"El {rol} {session.student.name} ha cancelado la sesión programada para el {session.scheduled_at.strftime('%Y-%m-%d %H:%M')}.",
-                data={"type": NoveltyType.SESION, "entityId": session.id}
+                data={"type": NoveltyType.SESION, "entity_id": session.id}
             )
         )
         return update
@@ -314,7 +314,7 @@ class SessionService:
             payload=NotificationPayload(
                 title="Sesión confirmada",
                 body=mensaje,
-                data={"type": NoveltyType.SESION, "entityId": session.id}
+                data={"type": NoveltyType.SESION, "entity_id": session.id}
             )
         )
         await self.novelty_repo.create_novelty(Novelty(
