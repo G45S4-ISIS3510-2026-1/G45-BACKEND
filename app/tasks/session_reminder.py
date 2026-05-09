@@ -30,13 +30,14 @@ async def _notify_user(user_repo: UserRepository, novelty_repo: NoveltiesReposit
             "role":      label,
         }
     )
+    payload_data = payload.data or {}
+    payload_data.update({
+        "title": payload.title,
+        "body": payload.body
+    })
     message = messaging.MulticastMessage(
         tokens=user.fcm_tokens,
-        notification=messaging.Notification(
-            title=payload.title,
-            body=payload.body,
-        ),
-        data=payload.data,
+        data=payload_data
     )
     
     novelty= Novelty (

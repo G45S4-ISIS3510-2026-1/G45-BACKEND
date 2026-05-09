@@ -62,23 +62,31 @@ async def notify_near_sessions():
             
             
             if tutor and tutor.fcm_tokens:
+                payload_data = {"type": NoveltyType.SESION, "entity_id": session.id}
+                payload_data.update({
+                    "title": "Recordatorio de sesión próxima",
+                    "body": f"Tienes una sesión programada en menos de una hora a las {session_time.strftime('%H:%M')}. Preparate y no olvides confirmar la asistencia con {student.name}."
+                })
                 message = messaging.MulticastMessage(
-                    notification=messaging.Notification(
-                        title="Recordatorio de sesión próxima",
-                        body=f"Tienes una sesión programada en menos de una hora a las {session_time.strftime('%H:%M')}. Preparate y no olvides confirmar la asistencia con {student.name}."
-                    ),
                     tokens=tutor.fcm_tokens,
-                    data={"type": NoveltyType.SESION, "entity_id": session.id}
+                    data=payload_data,
+                    android=messaging.AndroidConfig(
+                        priority='high',
+                    )
                 )
                 messaging.send_each_for_multicast(message)
             if student and student.fcm_tokens:
+                payload_data = {"type": NoveltyType.SESION, "entity_id": session.id}
+                payload_data.update({
+                    "title": "Recordatorio de sesión próxima",
+                    "body": f"Tienes una sesión programada en menos de una hora a las {session_time.strftime('%H:%M')}. Preparate y no olvides confirmar la asistencia con {tutor.name}."
+                })
                 message = messaging.MulticastMessage(
-                    notification=messaging.Notification(
-                        title="Recordatorio de sesión próxima",
-                        body=f"Tienes una sesión programada en menos de una hora a las {session_time.strftime('%H:%M')}. Preparate y no olvides confirmar la asistencia con {tutor.name}."
-                    ),
                     tokens=student.fcm_tokens,
-                    data={"type": NoveltyType.SESION, "entity_id": session.id}
+                    data=payload_data,
+                    android=messaging.AndroidConfig(
+                        priority='high',
+                    )
                 )
                 messaging.send_each_for_multicast(message)
         

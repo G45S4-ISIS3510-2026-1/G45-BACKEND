@@ -392,14 +392,19 @@ class UserService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="El usuario no tiene dispositivos con sesión activa."
             )
+            
+        payload_data = payload.data or {}
+        payload_data.update({
+            "title": payload.title,
+            "body": payload.body
+        })
 
         message = messaging.MulticastMessage(
             tokens=user.fcm_tokens,
-            notification=messaging.Notification(
-                title=payload.title,
-                body=payload.body,
-            ),
-            data=payload.data or {},
+            data=payload_data,
+            android=messaging.AndroidConfig(
+                priority='high',
+            )
         )
 
         try:
