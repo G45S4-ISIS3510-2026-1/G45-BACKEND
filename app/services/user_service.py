@@ -387,11 +387,6 @@ class UserService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Usuario '{user_id}' no encontrado."
             )
-        if not user.fcm_tokens:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="El usuario no tiene dispositivos con sesión activa."
-            )
             
         payload_data = payload.data or {}
         payload_data.update({
