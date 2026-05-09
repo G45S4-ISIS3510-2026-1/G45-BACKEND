@@ -6,7 +6,7 @@ import unicodedata
 
 import httpx
 from app.core.currentWeekManager import getColombiaWeekDate
-from app.models.enums import NoveltyType, UniandesMajor
+from app.models.enums import NoveltyType, SessionStatus, UniandesMajor
 from app.models.notification import NotificationPayload
 from app.models.novelty import Novelty
 from app.models.sessions import Session
@@ -95,7 +95,7 @@ class UserService:
             )
         tutor_sessions = await self.sessionRepo.get_by_tutor(tutor_id)
         tutor_sessions.extend(await self.sessionRepo.get_by_student(tutor_id))
-        tutor.availability = self.getFreeSlots(tutor.availability, tutor_sessions)
+        tutor.availability = self.getFreeSlots(tutor.availability, [session for session in tutor_sessions if session.status == SessionStatus.PENDIENTE])
         return tutor
 
 
