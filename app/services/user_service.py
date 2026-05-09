@@ -411,6 +411,7 @@ class UserService:
             batch_response: messaging.BatchResponse = (
                 messaging.send_each_for_multicast(message)
             )
+            print(f"Notificación enviada: {batch_response.success_count} éxitos, {batch_response.failure_count} fallos.")
         except FirebaseError as e:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
