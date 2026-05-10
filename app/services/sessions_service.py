@@ -199,6 +199,10 @@ class SessionService:
         return created_session
 
     # ------------------------------------------------------------------ READ
+    async def get_all(self) -> list[Session]:
+        return await self.session_repo.get_all()
+    
+    
     async def get_by_id(self, session_id: str) -> Session:
         session = await self.session_repo.get_by_id(session_id)
         if not session:
