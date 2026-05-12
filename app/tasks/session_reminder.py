@@ -3,7 +3,7 @@
 import asyncio
 from datetime import datetime, timezone, timedelta
 from app.core.currentWeekManager import getColombiaTimezone
-from app.core.firebase import get_firestore_client
+from app.core.firebase import check_fcm_token, get_firestore_client
 from app.models.novelty import Novelty
 from app.models.sessions import Session
 from app.repositories.novelty_repository import NoveltiesRepository
@@ -36,7 +36,7 @@ async def _notify_user(user_repo: UserRepository, novelty_repo: NoveltiesReposit
         "body": payload.body
     })
     message = messaging.MulticastMessage(
-        tokens=user.fcm_tokens,
+        tokens=[token for token in user.fcm_tokens if check_fcm_token(token)],
         data=payload_data
     )
     

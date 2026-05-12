@@ -210,6 +210,14 @@ class UserRepository:
             return None
         await doc_ref.update({"fcmTokens": ArrayRemove([token])})
         return self._doc_to_user(await doc_ref.get())
+    
+    async def update_fcm_tokens(self, user_id: str, tokens: list[str]) -> User | None:
+        doc_ref = self.col.document(user_id)
+        doc = await doc_ref.get()
+        if not doc.exists:
+            return None
+        await doc_ref.update({"fcmTokens": tokens})
+        return self._doc_to_user(await doc_ref.get())
 
     # ------------------------------------------------------------------ DELETE
     async def delete(self, user_id: str) -> bool:

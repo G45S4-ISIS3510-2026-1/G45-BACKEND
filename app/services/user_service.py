@@ -4,6 +4,7 @@ from datetime import date, datetime, timezone
 from datetime import date, datetime
 import unicodedata
 
+from app.core.firebase import check_fcm_token
 import httpx
 from app.core.currentWeekManager import getColombiaWeekDate
 from app.models.enums import NoveltyType, SessionStatus, UniandesMajor
@@ -383,16 +384,20 @@ class UserService:
         """
         user = await self.repo.get_by_id(user_id)
         if not user:
-            pass  # No lanzar error si el usuario no existe, para no bloquear la operación que dispara la notificación
+            return  # No lanzar error si el usuario no existe, para no bloquear la operación que dispara la notificación
             
         payload_data = payload.data or {}
         payload_data.update({
             "title": payload.title,
             "body": payload.body
         })
+        
+        valid_tokens = [token for token in user.fcm_tokens if check_fcm_token(token)]
+        
+        self.repo.update_fcm_tokens(user_id, valid_tokens)  # Limpieza proactiva de tokens inválidos
 
         message = messaging.MulticastMessage(
-            tokens=user.fcm_tokens,
+            tokens=valid_tokens,
             data=payload_data,
             android=messaging.AndroidConfig(
                 priority='high',
@@ -405,24 +410,12 @@ class UserService:
             )
             print(f"Notificación enviada: {batch_response.success_count} éxitos, {batch_response.failure_count} fallos.")
         except FirebaseError as e:
-            pass
-
-        # Identificar y limpiar tokens inválidos/expirados
-        invalid_tokens = [
-            user.fcm_tokens[i]
-            for i, resp in enumerate(batch_response.responses)
-            if not resp.success
-            and resp.exception
-            and "invalid-registration-token" in str(resp.exception).lower()
-            or "registration-token-not-registered" in str(resp.exception).lower()
-        ]
-        for token in invalid_tokens:
-            await self.repo.remove_fcm_token(user_id, token)
+            return
 
         return {
             "success_count": batch_response.success_count,
             "failure_count": batch_response.failure_count,
-            "removed_tokens": invalid_tokens,
+            "removed_tokens": [token for token in user.fcm_tokens if token not in valid_tokens],
         }
     
     # ------------------------------------------------------------------ SESSION PRICE

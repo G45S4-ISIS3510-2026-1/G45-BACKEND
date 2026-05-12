@@ -5,7 +5,7 @@ from firebase_admin import messaging
 
 from app.core.currentWeekManager import getColombiaTimezone
 from app.core.currentWeekManager import getColombiaTimezone
-from app.core.firebase import get_firestore_client
+from app.core.firebase import check_fcm_token, get_firestore_client
 from app.models.enums import NoveltyType, SessionStatus
 from app.models.novelty import Novelty
 from app.repositories.novelty_repository import NoveltiesRepository
@@ -68,7 +68,7 @@ async def notify_near_sessions():
                     "body": f"Tienes una sesión programada en menos de una hora a las {session_time.strftime('%H:%M')}. Preparate y no olvides confirmar la asistencia con {student.name}."
                 })
                 message = messaging.MulticastMessage(
-                    tokens=tutor.fcm_tokens,
+                    tokens=[token for token in tutor.fcm_tokens if check_fcm_token(token)],
                     data=payload_data,
                     android=messaging.AndroidConfig(
                         priority='high',
@@ -82,7 +82,7 @@ async def notify_near_sessions():
                     "body": f"Tienes una sesión programada en menos de una hora a las {session_time.strftime('%H:%M')}. Preparate y no olvides confirmar la asistencia con {tutor.name}."
                 })
                 message = messaging.MulticastMessage(
-                    tokens=student.fcm_tokens,
+                    tokens=[token for token in student.fcm_tokens if check_fcm_token(token)],
                     data=payload_data,
                     android=messaging.AndroidConfig(
                         priority='high',

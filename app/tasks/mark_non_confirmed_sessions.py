@@ -4,7 +4,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from firebase_admin import messaging
 
 from app.core.currentWeekManager import getColombiaTimezone
-from app.core.firebase import get_firestore_client
+from app.core.firebase import check_fcm_token, get_firestore_client
 from app.models.enums import NoveltyType, SessionStatus
 from app.models.novelty import Novelty
 from app.repositories.novelty_repository import NoveltiesRepository
@@ -58,22 +58,32 @@ async def mark_non_confirmed_sessions():
             
             tutor= await user_repo.get_by_id(session.tutor.id)
             if tutor and tutor.fcm_token:
-                message = messaging.Message(
-                    notification=messaging.Notification(
-                        title="Sesión vencida",
-                        body=f"Tú o el/la estudiante {session.student.name} no han confirmado la sesión programada para {session_time.strftime('%Y-%m-%d %H:%M')}, por lo que se ha marcado como vencida."
-                    ),
-                    token=tutor.fcm_token
+                valid_tokens = [token for token in tutor.fcm_tokens if check_fcm_token(token)]
+                payload_data = {}
+                payload_data.update({
+                    "title": "Sesión vencida",
+                    "body": f"Tú o el/la estudiante {session.student.name} no han confirmado la sesión programada para {session_time.strftime('%Y-%m-%d %H:%M')}, por lo que se ha marcado como vencida.",  
+                    "entity_id": session.id,
+                    "type": NoveltyType.SESION,
+                })
+                message = messaging.MulticastMessage(
+                    tokens=valid_tokens,
+                    data=payload_data
                 )
-                messaging.send(message)
+                messaging.send_each_for_multicast(message)
             student= await user_repo.get_by_id(session.student.id)
             if student and student.fcm_token:
-                message = messaging.Message(
-                    notification=messaging.Notification(
-                        title="Sesión vencida",
-                        body=f"Tú o el/la tutor {session.tutor.name} no han confirmado la sesión programada para {session_time.strftime('%Y-%m-%d %H:%M')}, por lo que se ha marcado como vencida."
-                    ),
-                    token=student.fcm_token
+                valid_tokens = [token for token in student.fcm_tokens if check_fcm_token(token)]
+                payload_data = {}
+                payload_data.update({
+                    "title": "Sesión vencida",
+                    "body": f"Tú o el/la tutor(a) {session.tutor.name} no han confirmado la sesión programada para {session_time.strftime('%Y-%m-%d %H:%M')}, por lo que se ha marcado como vencida.",  
+                    "entity_id": session.id,
+                    "type": NoveltyType.SESION,
+                })
+                message = messaging.MulticastMessage(
+                    tokens=valid_tokens,
+                    data=payload_data
                 )
-                messaging.send(message)
+                messaging.send_each_for_multicast(message)
         
