@@ -2,6 +2,7 @@
 
 import firebase_admin
 from firebase_admin import credentials, firestore_async, messaging
+from firebase_admin.exceptions import FirebaseError
 
 _app = None
 
@@ -34,7 +35,7 @@ def check_fcm_token(token):
         print("Token does not match this project's Sender ID.")
         return False
         
-    except messaging.FirebaseError as e:
+    except FirebaseError as e:
         # Catch-all for other Firebase issues (e.g., QUOTA_EXCEEDED, INTERNAL)
         print(f"Firebase error occurred: {e.code} - {e}")
         return False
