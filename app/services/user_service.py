@@ -383,10 +383,7 @@ class UserService:
         """
         user = await self.repo.get_by_id(user_id)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Usuario '{user_id}' no encontrado."
-            )
+            pass  # No lanzar error si el usuario no existe, para no bloquear la operación que dispara la notificación
             
         payload_data = payload.data or {}
         payload_data.update({
@@ -408,10 +405,7 @@ class UserService:
             )
             print(f"Notificación enviada: {batch_response.success_count} éxitos, {batch_response.failure_count} fallos.")
         except FirebaseError as e:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"Error al comunicarse con FCM: {str(e)}"
-            )
+            pass
 
         # Identificar y limpiar tokens inválidos/expirados
         invalid_tokens = [
