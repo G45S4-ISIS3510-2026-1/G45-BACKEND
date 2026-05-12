@@ -394,7 +394,7 @@ class UserService:
         
         valid_tokens = [token for token in user.fcm_tokens if check_fcm_token(token)]
         
-        self.repo.update_fcm_tokens(user_id, valid_tokens)  # Limpieza proactiva de tokens inválidos
+        await self.repo.update_fcm_tokens(user_id, valid_tokens)  # Limpieza proactiva de tokens inválidos
 
         message = messaging.MulticastMessage(
             tokens=valid_tokens,
