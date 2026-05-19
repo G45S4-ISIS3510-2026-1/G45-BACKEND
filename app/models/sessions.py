@@ -26,7 +26,7 @@ class Session(BaseModel):
     )
     price: int = Field(
         default=0, alias="price",
-        ge=0, le=50000, description="Precio de la sesión en pesos colombianos (debe ser igual al sessionPrice del tutor al momento de crear la sesión)"
+        ge=0, description="Precio de la sesión en pesos colombianos (debe ser igual al sessionPrice del tutor al momento de crear la sesión)"
     )
     scheduled_at: datetime      = Field(..., alias="scheduledAt", description="Fecha y hora en que ocurrirá la sesión")
     status:       SessionStatus = Field(default=SessionStatus.PENDIENTE, description="Estado actual de la sesión")

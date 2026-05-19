@@ -3,6 +3,8 @@
 from app.core.currentWeekManager import getColombiaTimezone, refactorTimezone
 from app.models.user import Availability, PaymentMethod, User
 from google.cloud.firestore_v1 import ArrayRemove, ArrayUnion, AsyncClient
+# Direct underlying path (fallback only)
+from google.cloud.firestore_v1.transforms import Increment as AsyncIncrement
 
 COLLECTION = "users"
 
@@ -208,6 +210,14 @@ class UserRepository:
             return None
         await doc_ref.update({"fcmTokens": ArrayRemove([token])})
         return self._doc_to_user(await doc_ref.get())
+    
+    async def update_fcm_tokens(self, user_id: str, tokens: list[str]) -> User | None:
+        doc_ref = self.col.document(user_id)
+        doc = await doc_ref.get()
+        if not doc.exists:
+            return None
+        await doc_ref.update({"fcmTokens": tokens})
+        return self._doc_to_user(await doc_ref.get())
 
     # ------------------------------------------------------------------ DELETE
     async def delete(self, user_id: str) -> bool:
@@ -230,7 +240,6 @@ class UserRepository:
     
     
     async def increment_field(self, user_id: str, field: str, delta: int) -> None:
-        from google.cloud.firestore import AsyncIncrement
         doc_ref = self.col.document(user_id)
         await doc_ref.update({field: AsyncIncrement(delta)})
 

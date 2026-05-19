@@ -25,6 +25,10 @@ async def create_session(session: Session, svc: SessionService = SS):
 
 
 # ------------------------------------------------------------------ READ
+@router.get("/", response_model=list[Session])
+async def get_all_sessions(svc: SessionService = SS):
+    return await svc.get_all()
+
 
 @router.get("/{session_id}", response_model=Session)
 async def get_by_id(session_id: str, svc: SessionService = SS):

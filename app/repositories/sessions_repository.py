@@ -73,7 +73,7 @@ class SessionRepository:
         )
         return [self._doc_to_session(doc) for doc in docs]
 
-    async def get_by_tutor_and_student(self, tutor_id: str, student_id: str) -> list[Session]:
+    """async def get_by_tutor_and_student(self, tutor_id: str, student_id: str) -> list[Session]:
         docs = await (
             self.col
             .where(filter=FieldFilter("tutor.id", "==", tutor_id))
@@ -81,6 +81,23 @@ class SessionRepository:
             .get()
         )
         return [self._doc_to_session(doc) for doc in docs]
+    """
+    async def get_by_tutor_and_student(self, tutor_id: str, student_id: str) -> list[Session]:
+        ids = [tutor_id, student_id]
+        
+        docs = await (
+            self.col
+            .where(filter=FieldFilter("tutor.id", "in", ids))
+            .where(filter=FieldFilter("student.id", "in", ids))
+            .get()
+        )
+        
+        # Filter out "self-sessions" if id_1 and id_2 are different
+        # (prevents matching a doc where tutor.id == id_1 AND student.id == id_1)
+        return [
+            self._doc_to_session(doc) for doc in docs 
+            if doc.get("tutor.id") != doc.get("student.id")
+        ]
     # ------------------------------------------------------------------ UPDATE
     async def update_status(self, session_id: str, status: SessionStatus) -> Session | None:
         doc_ref = self.col.document(session_id)

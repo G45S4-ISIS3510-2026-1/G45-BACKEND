@@ -3,7 +3,7 @@
 import asyncio
 from datetime import datetime, timezone, timedelta
 from app.core.currentWeekManager import getColombiaTimezone
-from app.core.firebase import get_firestore_client
+from app.core.firebase import check_fcm_token, get_firestore_client
 from app.models.novelty import Novelty
 from app.models.sessions import Session
 from app.repositories.novelty_repository import NoveltiesRepository
@@ -25,18 +25,19 @@ async def _notify_user(user_repo: UserRepository, novelty_repo: NoveltiesReposit
         title="Recordatorio de tutoría 📚",
         body=f"Hoy tienes una sesión como {label} a las {scheduled_str}. Revisa tus novedades para más detalles.",
         data={
-            "type":      "SESSION_REMINDER",
-            "sessionId": session.id,
+            "type":      NoveltyType.SESION,
+            "entity_id": session.id,
             "role":      label,
         }
     )
+    payload_data = payload.data or {}
+    payload_data.update({
+        "title": payload.title,
+        "body": payload.body
+    })
     message = messaging.MulticastMessage(
-        tokens=user.fcm_tokens,
-        notification=messaging.Notification(
-            title=payload.title,
-            body=payload.body,
-        ),
-        data=payload.data,
+        tokens=[token for token in user.fcm_tokens if check_fcm_token(token)],
+        data=payload_data
     )
     
     novelty= Novelty (

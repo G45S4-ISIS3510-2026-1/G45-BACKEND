@@ -4,9 +4,10 @@ from datetime import date, datetime, timezone
 from datetime import date, datetime
 import unicodedata
 
+from app.core.firebase import check_fcm_token
 import httpx
 from app.core.currentWeekManager import getColombiaWeekDate
-from app.models.enums import NoveltyType, UniandesMajor
+from app.models.enums import NoveltyType, SessionStatus, UniandesMajor
 from app.models.notification import NotificationPayload
 from app.models.novelty import Novelty
 from app.models.sessions import Session
@@ -95,7 +96,7 @@ class UserService:
             )
         tutor_sessions = await self.sessionRepo.get_by_tutor(tutor_id)
         tutor_sessions.extend(await self.sessionRepo.get_by_student(tutor_id))
-        tutor.availability = self.getFreeSlots(tutor.availability, tutor_sessions)
+        tutor.availability = self.getFreeSlots(tutor.availability, [session for session in tutor_sessions if session.status == SessionStatus.PENDIENTE])
         return tutor
 
 
@@ -236,11 +237,6 @@ class UserService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Usuario '{user_id}' no encontrado."
             )
-        if not user.is_tutoring:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Solo los tutores pueden modificar su disponibilidad."
-            )
         return await self.repo.update_availability(user_id, availability)
 
     async def update_tutoring_skills(self, user_id: str, skill_ids: list[str]) -> User:
@@ -249,11 +245,6 @@ class UserService:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Usuario '{user_id}' no encontrado."
-            )
-        if not user.is_tutoring:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Solo los tutores pueden definir skills de tutoría."
             )
         return await self.repo.update_tutoring_skills(user_id, skill_ids)
 
@@ -272,6 +263,7 @@ class UserService:
                 detail=f"Usuario '{user_id}' no encontrado."
             )
         # Verificar que todos los IDs referenciados existen y son tutores
+        valid_fav_tutor_ids = list()
         for tutor_id in fav_tutor_ids:
             tutor = await self.repo.get_by_id(tutor_id)
             if not tutor:
@@ -279,13 +271,11 @@ class UserService:
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"El tutor '{tutor_id}' no existe."
                 )
-            if not tutor.is_tutoring:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"El usuario '{tutor_id}' no es tutor."
-                )
-        return await self.repo.update_fav_tutors(user_id, fav_tutor_ids)
-    
+            if tutor.is_tutoring:
+                valid_fav_tutor_ids.append(tutor_id)
+
+        return await self.repo.update_fav_tutors(user_id, valid_fav_tutor_ids)
+
     async def get_top_tutors(self, limit: int = 10):
         from app.dtos.tutor_summary import TutorSummary
         tutors = await self.repo.get_all_tutors()
@@ -396,51 +386,38 @@ class UserService:
         """
         user = await self.repo.get_by_id(user_id)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Usuario '{user_id}' no encontrado."
-            )
-        if not user.fcm_tokens:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="El usuario no tiene dispositivos con sesión activa."
-            )
+            return  # No lanzar error si el usuario no existe, para no bloquear la operación que dispara la notificación
+            
+        payload_data = payload.data or {}
+        payload_data.update({
+            "title": payload.title,
+            "body": payload.body
+        })
+        
+        valid_tokens = [token for token in user.fcm_tokens if check_fcm_token(token)]
+        
+        await self.repo.update_fcm_tokens(user_id, valid_tokens)  # Limpieza proactiva de tokens inválidos
 
         message = messaging.MulticastMessage(
-            tokens=user.fcm_tokens,
-            notification=messaging.Notification(
-                title=payload.title,
-                body=payload.body,
-            ),
-            data=payload.data or {},
+            tokens=valid_tokens,
+            data=payload_data,
+            android=messaging.AndroidConfig(
+                priority='high',
+            )
         )
 
         try:
             batch_response: messaging.BatchResponse = (
                 messaging.send_each_for_multicast(message)
             )
+            print(f"Notificación enviada: {batch_response.success_count} éxitos, {batch_response.failure_count} fallos.")
         except FirebaseError as e:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"Error al comunicarse con FCM: {str(e)}"
-            )
-
-        # Identificar y limpiar tokens inválidos/expirados
-        invalid_tokens = [
-            user.fcm_tokens[i]
-            for i, resp in enumerate(batch_response.responses)
-            if not resp.success
-            and resp.exception
-            and "invalid-registration-token" in str(resp.exception).lower()
-            or "registration-token-not-registered" in str(resp.exception).lower()
-        ]
-        for token in invalid_tokens:
-            await self.repo.remove_fcm_token(user_id, token)
+            return
 
         return {
             "success_count": batch_response.success_count,
             "failure_count": batch_response.failure_count,
-            "removed_tokens": invalid_tokens,
+            "removed_tokens": [token for token in user.fcm_tokens if token not in valid_tokens],
         }
     
     # ------------------------------------------------------------------ SESSION PRICE
@@ -452,21 +429,13 @@ class UserService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Usuario '{user_id}' no encontrado."
             )
-        if not tutor.is_tutoring:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Solo los tutores pueden tener un precio de sesión."
-            )
+
         if new_price < 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="El precio no puede ser negativo."
             )
-        if new_price == tutor.session_price:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"El precio ya es {new_price} COP."
-            )
+       
 
         # Actualizar el precio
         updated_tutor = await self.repo.update(
@@ -491,8 +460,8 @@ class UserService:
             title=f"{tutor.name} actualizó su precio",
             body=f"Las sesiones con {tutor.name}, uno de tus tutores favoritos ahora cuestan {price_label}.",
             data={
-                "type":    "TUTOR_PRICE_UPDATED",
-                "tutorId": user_id,
+                "type":    NoveltyType.PRECIO_CAMBIADO,
+                "entity_id": user_id,
                 "price":   str(new_price),
             }
         )
