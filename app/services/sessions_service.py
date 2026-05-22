@@ -163,6 +163,7 @@ class SessionService:
         session.tutor=ParticipantSummary(id=tutor.id, name=tutor.name, profileImageUrl=tutor.profile_image_url)
         session.skill=SkillSummary(id=skill.id, label=skill.label) if session.skill else None
         session.price = tutor.session_price
+        session.created_at = datetime.now(colombiaTimezone)
         created_session = await self.session_repo.create(session)
         
         novelty=Novelty(
@@ -279,6 +280,20 @@ class SessionService:
                 data={"type": NoveltyType.SESION, "entity_id": session.id}
             )
         )
+
+        try:
+            import httpx
+            from app.core.config import settings
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                await client.post(f"{settings.ANALYTICS_URL}/analytics/event", json={
+                    "user_id": participant_id,
+                    "event_type": "session_cancelled",
+                    "metadata": {"tutor_id": session.tutor.id, "student_id": session.student.id, "session_id": session_id, "cancelled_by": participant_id},
+                    "timestamp": datetime.now().isoformat(),
+                })
+        except Exception:
+            pass
+
         return update
 
     async def confirm(self, session_id: str, participant_id: str, verif_code: str) -> Session:
@@ -300,6 +315,19 @@ class SessionService:
                 detail="Solo el estudiante o el tutor de la sesión pueden confirmarla."
             )
         if session.verif_code != verif_code:
+            # TD-001 #4 — audit trail de intentos fallidos para detectar brute force
+            try:
+                import httpx
+                from app.core.config import settings
+                async with httpx.AsyncClient(timeout=2.0) as client:
+                    await client.post(f"{settings.ANALYTICS_URL}/analytics/event", json={
+                        "user_id": participant_id,
+                        "event_type": "session_confirm_failed",
+                        "metadata": {"tutor_id": session.tutor.id, "student_id": session.student.id, "session_id": session_id, "attempted_by": participant_id},
+                        "timestamp": datetime.now().isoformat(),
+                    })
+            except Exception:
+                pass
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Código de verificación incorrecto."
@@ -332,5 +360,18 @@ class SessionService:
         # BQ6: track completed sessions for leaderboard
         await self.user_repo.increment_field(session.tutor.id, "sessionsCompleted", 1)
         await self.user_repo.increment_field(session.student.id, "sessionsCompleted", 1)
-                
+
+        try:
+            import httpx
+            from app.core.config import settings
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                await client.post(f"{settings.ANALYTICS_URL}/analytics/event", json={
+                    "user_id": participant_id,
+                    "event_type": "session_confirmed",
+                    "metadata": {"tutor_id": session.tutor.id, "student_id": session.student.id, "session_id": session_id, "confirmed_by": participant_id},
+                    "timestamp": datetime.now().isoformat(),
+                })
+        except Exception:
+            pass
+
         return update

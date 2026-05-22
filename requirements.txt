@@ -17,6 +17,9 @@ firebase-admin==6.6.0
 # Scheduler
 APScheduler==3.10.4
 
+# HTTP client
+httpx==0.28.1
+
 # Utilidades de fechas y zonas horarias
 pytz==2024.1
 
