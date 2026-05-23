@@ -42,6 +42,7 @@ class SessionStatus(str, Enum):
     PENDIENTE   = "Pendiente"
     CANCELADA   = "Cancelada"
     CONCLUIDA   = "Concluida"
+    CONFIRMADA   = "Confirmada"
     EN_REVISION = "En Revisión"
     VENCIDA     = "Vencida"
 
