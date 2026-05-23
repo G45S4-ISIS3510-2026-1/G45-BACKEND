@@ -41,7 +41,21 @@ async def mark_non_confirmed_sessions():
         
         if session.status == SessionStatus.PENDIENTE and session_time and session_time+timedelta(hours=1) < now:
             await session_repo.update_status(session.id, SessionStatus.VENCIDA)
-            
+
+            # BQ Embudo de reservas — emite session_expired para cerrar el ciclo
+            try:
+                import httpx
+                from app.core.config import settings
+                async with httpx.AsyncClient(timeout=2.0) as client:
+                    await client.post(f"{settings.ANALYTICS_URL}/analytics/event", json={
+                        "user_id": session.student.id,
+                        "event_type": "session_expired",
+                        "metadata": {"tutor_id": session.tutor.id, "student_id": session.student.id, "session_id": session.id, "scheduled_at": session_time.isoformat()},
+                        "timestamp": datetime.now().isoformat(),
+                    })
+            except Exception:
+                pass
+
             novelty_tutor.user_id=session.tutor.id
             novelty_tutor.title="Sesión vencida"
             novelty_tutor.type=NoveltyType.SESION

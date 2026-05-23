@@ -29,6 +29,7 @@ class Session(BaseModel):
         ge=0, description="Precio de la sesión en pesos colombianos (debe ser igual al sessionPrice del tutor al momento de crear la sesión)"
     )
     scheduled_at: datetime      = Field(..., alias="scheduledAt", description="Fecha y hora en que ocurrirá la sesión")
+    created_at:   datetime|None = Field(default=None, alias="createdAt", description="Fecha y hora en que el usuario creó la reserva (se asigna en el servidor)")
     status:       SessionStatus = Field(default=SessionStatus.PENDIENTE, description="Estado actual de la sesión")
     verif_code:   str  |None         = Field(default=None, alias="verifCode",   description="Código alfanumérico de verificación de la sesión")
     skill: SkillSummary|None = Field(default=None, description="Resumen de la habilidad principal de la tutoría")
