@@ -67,7 +67,7 @@ class ReviewService:
         tutor.receivedRatings=tutor.receivedRatings+1
         await self.user_repo.update(tutor.id, tutor)
         newReview=await self.review_repo.create(review)
-        self.novelty_repo.create_novelty(
+        await self.novelty_repo.create_novelty(
             Novelty(
                 user_id=tutor.id,
                 title=f"Nueva reseña de {author.name}",
