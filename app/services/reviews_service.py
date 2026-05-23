@@ -3,19 +3,22 @@
 from fastapi import HTTPException, status
 from app.dtos.review_response import ReviewResponse
 from app.models.enums import NoveltyType
+from app.models.notification import NotificationPayload
 from app.models.novelty import Novelty
 from app.models.reviews import Review
 from app.repositories.novelty_repository import NoveltiesRepository
 from app.repositories.reviews_repository import ReviewRepository
 from app.repositories.user_repository import UserRepository
+from app.services.user_service import UserService
 
 
 class ReviewService:
 
-    def __init__(self, review_repo: ReviewRepository, user_repo: UserRepository, noveltyRepo: NoveltiesRepository):
+    def __init__(self, review_repo: ReviewRepository, user_repo: UserRepository, noveltyRepo: NoveltiesRepository, userService:UserService):
         self.review_repo = review_repo
         self.user_repo   = user_repo
         self.novelty_repo = noveltyRepo
+        self.userService = userService
 
     # ------------------------------------------------------------------ CREATE
     async def create(self, review: Review) -> Review:
@@ -71,6 +74,14 @@ class ReviewService:
                 type=NoveltyType.REVIEW,
                 entity_id=newReview.id,
                 description=f"Nuevo review de {author.name} para tutor {tutor.name}: '{review.label}' con calificación {review.rating}: {review.label[:50]}..."
+            )
+        )
+        await self.user_service.send_push_notification(
+            user_id=tutor.id,
+            payload=NotificationPayload(
+                title="Reseña recibida",
+                body=f"El estudiante {author.name} ha dejado una reseña sobre tu servicio.",
+                data={"type": NoveltyType.REVIEW, "entity_id": tutor.id}
             )
         )
         

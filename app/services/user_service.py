@@ -231,12 +231,38 @@ class UserService:
         return await self.repo.set_tutoring(user_id, is_tutoring)
 
     async def update_availability(self, user_id: str, availability: Availability) -> User:
-        user = await self.repo.get_by_id(user_id)
-        if not user:
+        tutor = await self.repo.get_by_id(user_id)
+        if not tutor:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Usuario '{user_id}' no encontrado."
             )
+        
+        # Notificar a todos los usuarios que tienen a este tutor como favorito
+        fans = await self.repo.get_users_with_fav_tutor(user_id)
+        payload = NotificationPayload(
+            title=f"{tutor.name} actualizó su disponibilidad",
+            body=f"{tutor.name}, uno de tus tutores favoritos, ha actualizado sus horarios de tutorías. Echa un vistazo a su perfil para ver cuándo está disponible.",
+            data={
+                "type":    NoveltyType.PRECIO_CAMBIADO,
+                "entity_id": user_id,
+            }
+        )
+        for fan in fans:
+            novelty=Novelty(
+                user_id=fan.id,
+                title=payload.title,
+                description=payload.body,
+                entity_id=user_id,
+                type=NoveltyType.PRECIO_CAMBIADO 
+            )
+            await self.noveltyRepo.create_novelty(novelty)
+            if fan.fcm_tokens:
+                try:
+                    await self.send_push_notification(fan.id, payload)
+                except HTTPException:
+                    pass  # No interrumpir si un usuario no tiene tokens activos
+        
         return await self.repo.update_availability(user_id, availability)
 
     async def update_tutoring_skills(self, user_id: str, skill_ids: list[str]) -> User:
