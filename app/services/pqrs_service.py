@@ -38,7 +38,7 @@ class PQRService:
                     detail=f"La sesión '{pqr.related_incident}' no existe."
                 )
             # El autor debe ser participante de la sesión referenciada
-            if pqr.author_id not in {session.student_id, session.tutor_id}:
+            if pqr.author_id not in {session.student.id, session.tutor.id}:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="El autor no es participante de la sesión referenciada."
