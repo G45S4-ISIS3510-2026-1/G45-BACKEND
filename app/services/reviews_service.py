@@ -18,7 +18,7 @@ class ReviewService:
         self.review_repo = review_repo
         self.user_repo   = user_repo
         self.novelty_repo = noveltyRepo
-        self.userService = userService
+        self.user_service = userService
 
     # ------------------------------------------------------------------ CREATE
     async def create(self, review: Review) -> Review:
